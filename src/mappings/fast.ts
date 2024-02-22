@@ -11,7 +11,7 @@ function txDetailsFromHeader(header: assembly.edgeandnode.v1.Event): TxDetails {
     blockNumber: header.block_number,
     blockTimestamp: BigInt.fromString(header.block_timestamp),
     transactionGasUsed: BigInt.fromString(header.tx_gas_used),
-    transactionGasPrice: BigInt.fromString(header.tx_gas_price),
+    transactionGasPrice: BigInt.fromByteArray(Bytes.fromUint8Array(Uint8Array.from(header.tx_gas_price))),
     transactionHash: Bytes.fromUint8Array(Uint8Array.from(header.tx_hash)),
   };
 }

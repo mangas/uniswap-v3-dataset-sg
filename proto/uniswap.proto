@@ -39,7 +39,7 @@ message Event {
   string block_timestamp = 6;
   bytes tx_hash = 7;
   string tx_gas_used = 8; 
-  string tx_gas_price = 9;
+  bytes tx_gas_price = 9;
 }
 
 // Factory

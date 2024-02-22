@@ -784,7 +784,7 @@ export namespace edgeandnode {
         public block_timestamp: string = "";
         public tx_hash: Array<u8> = new Array<u8>();
         public tx_gas_used: string = "";
-        public tx_gas_price: string = "";
+        public tx_gas_price: Array<u8> = new Array<u8>();
 
         // Decodes Event from an ArrayBuffer
         static decode(buf: ArrayBuffer): Event {
@@ -843,7 +843,7 @@ export namespace edgeandnode {
                 break;
               }
               case 9: {
-                obj.tx_gas_price = decoder.string();
+                obj.tx_gas_price = decoder.bytes();
                 break;
               }
 
@@ -975,7 +975,7 @@ export namespace edgeandnode {
           if (this.tx_gas_price.length > 0) {
             encoder.uint32(0x4a);
             encoder.uint32(this.tx_gas_price.length);
-            encoder.string(this.tx_gas_price);
+            encoder.bytes(this.tx_gas_price);
           }
 
           return buf;
@@ -2446,7 +2446,7 @@ export namespace edgeandnode {
       public block_timestamp: string = "";
       public tx_hash: Array<u8> = new Array<u8>();
       public tx_gas_used: string = "";
-      public tx_gas_price: string = "";
+      public tx_gas_price: Array<u8> = new Array<u8>();
 
       // Decodes Event from an ArrayBuffer
       static decode(buf: ArrayBuffer): Event {
@@ -2505,7 +2505,7 @@ export namespace edgeandnode {
               break;
             }
             case 9: {
-              obj.tx_gas_price = decoder.string();
+              obj.tx_gas_price = decoder.bytes();
               break;
             }
 
@@ -2635,7 +2635,7 @@ export namespace edgeandnode {
         if (this.tx_gas_price.length > 0) {
           encoder.uint32(0x4a);
           encoder.uint32(this.tx_gas_price.length);
-          encoder.string(this.tx_gas_price);
+          encoder.bytes(this.tx_gas_price);
         }
 
         return buf;
