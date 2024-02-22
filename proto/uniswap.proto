@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+package edgeandnode.uniswap.v1;
+
+import "google/protobuf/any.proto";
+
+enum EventType{
+  // Factory
+  POOL_CREATED = 0;
+
+  // Position Manager
+  INCREASE_LIQUIDITY = 1;
+  DECREASE_LIQUIDITY = 2;
+  COLLECT = 3;
+  TRANSFER = 4;
+
+  // Pool
+  INITIALIZE = 5;
+  SWAP = 6;
+  MINT = 7;
+  BURN = 8;
+  FLASH = 9;
+}
+
+message Events {
+  repeated Event events = 1;
+}
+
+message Event {
+  // Owner points to the address that originated this event
+  // The PoolCreated will set this to factory, which is what we can use
+  // to track different factories with compatible events. 
+  bytes owner = 1;
+  EventType type = 2;
+  google.protobuf.Any event = 3;
+
+  bytes address = 4;
+  int32 block_number = 5;
+  string block_timestamp = 6;
+  bytes tx_hash = 7;
+  string tx_gas_used = 8; 
+  string tx_gas_price = 9;
+}
+
+// Factory
+message PoolCreated {
+  bytes  token0 = 2;
+  bytes  token1 = 3;
+  string fee = 4;
+  string tick_spacing = 5;
+  bytes  pool = 1;
+}
+
+// Position Manager
+message IncreaseLiquidity {
+  string token_id = 1;
+  string liquidity = 2;
+  string amount0 = 3;
+  string amount1 = 4;
+}
+
+message DecreaseLiquidity {
+  string token_id = 1;
+  string liquidity = 2;
+  string amount0 = 3;
+  string amount1 = 4;
+}
+
+message Collect {
+  string token_id = 1;
+  bytes recipient = 2;
+  string amount0 = 3;
+  string amount1 = 4;
+}
+message Transfer {
+  bytes from = 1;
+  bytes to = 2;
+  string token_id = 3;
+}
+
+// Pool 
+message Initialize {
+  string sqrt_price_x96 = 1;
+  string tick = 2;
+}
+message Swap {
+  bytes  sender = 1;
+  bytes  recipient = 2;
+  string amount0 = 3;
+  string amount1 = 4;
+  string sqrt_price_x96 = 5;
+  string liquidity = 6;
+  string tick = 7;
+  int32  log_index = 8;
+  bytes transaction_from = 9;
+}
+message Mint {
+  bytes  sender = 1;
+  bytes  owner = 2;
+  string tick_lower = 3;
+  string tick_upper = 4;
+  string amount = 5;
+  string amount0 = 6;
+  string amount1 = 7;
+  int32  log_index = 8;
+  bytes transaction_from = 9;
+}
+message Burn {
+  bytes  owner = 1;
+  string tick_lower = 2;
+  string tick_upper = 3;
+  string amount = 4;
+  string amount0 = 5;
+  string amount1 = 6;
+  int32  log_index = 7;
+  bytes transaction_from = 8;
+}
+message Flash {
+  bytes  sender = 1;
+  bytes  recipient = 2;
+  string amount0 = 3;
+  string amount1 = 4;
+  string paid0 = 5;
+  string paid1 = 6;
+}

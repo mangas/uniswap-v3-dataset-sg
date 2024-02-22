@@ -5,6 +5,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
+    "protoc": "protoc --plugin=./node_modules/protobuf-as/bin/protoc-gen-as --as_out=src/pb/ ./proto/*.proto",
     "build": "graph build",
     "create-local": "graph create ianlapham/uniswap-v3 --node http://127.0.0.1:8020",
     "deploy-local": "graph deploy ianlapham/uniswap-v3 --debug --ipfs http://localhost:5001 --node http://127.0.0.1:8020",
@@ -14,13 +15,15 @@
     "watch-local": "graph deploy ianlapham/uniswap-v3 --watch --debug --node http://127.0.0.1:8020/ --ipfs http://localhost:5001"
   },
   "devDependencies": {
-    "@graphprotocol/graph-cli": "^0.20.0",
-    "@graphprotocol/graph-ts": "^0.20.0",
+    "@graphprotocol/graph-cli": "^0.68.2",
+    "@graphprotocol/graph-ts": "^0.31.0",
     "@typescript-eslint/eslint-plugin": "^2.0.0",
     "@typescript-eslint/parser": "^2.0.0",
     "eslint": "^6.2.2",
     "eslint-config-prettier": "^6.1.0",
     "prettier": "^1.18.2",
-    "typescript": "^3.5.2"
+    "protobuf-as": "gravitational/protobuf-as",
+    "ts-node": "^10.9.2",
+    "typescript": "^3.9.10"
   }
 }

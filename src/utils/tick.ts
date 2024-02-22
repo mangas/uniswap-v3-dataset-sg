@@ -2,17 +2,17 @@
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { bigDecimalExponated, safeDiv } from '.'
 import { Tick } from '../types/schema'
-import { Mint as MintEvent } from '../types/templates/Pool/Pool'
 import { ONE_BD, ZERO_BD, ZERO_BI } from './constants'
+import { TxDetails } from '../mappings/position-manager'
 
-export function createTick(tickId: string, tickIdx: i32, poolId: string, event: MintEvent): Tick {
+export function createTick(tickId: string, tickIdx: i32, poolId: string, event: TxDetails): Tick {
   let tick = new Tick(tickId)
   tick.tickIdx = BigInt.fromI32(tickIdx)
   tick.pool = poolId
   tick.poolAddress = poolId
 
-  tick.createdAtTimestamp = event.block.timestamp
-  tick.createdAtBlockNumber = event.block.number
+  tick.createdAtTimestamp = event.blockTimestamp
+  tick.createdAtBlockNumber = event.blockNumber
   tick.liquidityGross = ZERO_BI
   tick.liquidityNet = ZERO_BI
   tick.liquidityProviderCount = ZERO_BI

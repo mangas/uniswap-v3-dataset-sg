@@ -2,15 +2,19 @@ import { WHITELIST_TOKENS } from './../utils/pricing'
 /* eslint-disable prefer-const */
 import { FACTORY_ADDRESS, ZERO_BI, ONE_BI, ZERO_BD, ADDRESS_ZERO } from './../utils/constants'
 import { Factory } from '../types/schema'
-import { PoolCreated } from '../types/Factory/Factory'
 import { Pool, Token, Bundle } from '../types/schema'
 import { Pool as PoolTemplate } from '../types/templates'
 import { fetchTokenSymbol, fetchTokenName, fetchTokenTotalSupply, fetchTokenDecimals } from '../utils/token'
 import { log, BigInt, Address } from '@graphprotocol/graph-ts'
+import * as assembly from "../pb/assembly"
+import { TxDetails } from './position-manager'
 
-export function handlePoolCreated(event: PoolCreated): void {
+export function handlePoolCreated(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.PoolCreated): void {
+  const poolAddress = Address.fromUint8Array(Uint8Array.from(event.pool));
+  const token0Address = Address.fromUint8Array(Uint8Array.from(event.token0));
+  const token1Address = Address.fromUint8Array(Uint8Array.from(event.token1));
   // temp fix
-  if (event.params.pool == Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')) {
+  if (poolAddress == Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')) {
     return
   }
 
@@ -39,17 +43,17 @@ export function handlePoolCreated(event: PoolCreated): void {
 
   factory.poolCount = factory.poolCount.plus(ONE_BI)
 
-  let pool = new Pool(event.params.pool.toHexString()) as Pool
-  let token0 = Token.load(event.params.token0.toHexString())
-  let token1 = Token.load(event.params.token1.toHexString())
+  let pool = new Pool(poolAddress.toHexString()) as Pool
+  let token0 = Token.load(token0Address.toHexString())
+  let token1 = Token.load(token1Address.toHexString())
 
   // fetch info if null
   if (token0 === null) {
-    token0 = new Token(event.params.token0.toHexString())
-    token0.symbol = fetchTokenSymbol(event.params.token0)
-    token0.name = fetchTokenName(event.params.token0)
-    token0.totalSupply = fetchTokenTotalSupply(event.params.token0)
-    let decimals = fetchTokenDecimals(event.params.token0)
+    token0 = new Token(token0Address.toHexString())
+    token0.symbol = fetchTokenSymbol(token0Address)
+    token0.name = fetchTokenName(token0Address)
+    token0.totalSupply = fetchTokenTotalSupply(token0Address)
+    let decimals = fetchTokenDecimals(token0Address)
 
     // bail if we couldn't figure out the decimals
     if (decimals === null) {
@@ -72,11 +76,11 @@ export function handlePoolCreated(event: PoolCreated): void {
   }
 
   if (token1 === null) {
-    token1 = new Token(event.params.token1.toHexString())
-    token1.symbol = fetchTokenSymbol(event.params.token1)
-    token1.name = fetchTokenName(event.params.token1)
-    token1.totalSupply = fetchTokenTotalSupply(event.params.token1)
-    let decimals = fetchTokenDecimals(event.params.token1)
+    token1 = new Token(token1Address.toHexString())
+    token1.symbol = fetchTokenSymbol(token1Address)
+    token1.name = fetchTokenName(token1Address)
+    token1.totalSupply = fetchTokenTotalSupply(token1Address)
+    let decimals = fetchTokenDecimals(token1Address)
     // bail if we couldn't figure out the decimals
     if (decimals === null) {
       log.debug('mybug the decimal on token 0 was null', [])
@@ -110,9 +114,9 @@ export function handlePoolCreated(event: PoolCreated): void {
 
   pool.token0 = token0.id
   pool.token1 = token1.id
-  pool.feeTier = BigInt.fromI32(event.params.fee)
-  pool.createdAtTimestamp = event.block.timestamp
-  pool.createdAtBlockNumber = event.block.number
+  pool.feeTier = BigInt.fromString(event.fee)
+  pool.createdAtTimestamp = txDetails.blockTimestamp
+  pool.createdAtBlockNumber = txDetails.blockNumber
   pool.liquidityProviderCount = ZERO_BI
   pool.txCount = ZERO_BI
   pool.liquidity = ZERO_BI
@@ -139,7 +143,8 @@ export function handlePoolCreated(event: PoolCreated): void {
 
   pool.save()
   // create the tracked contract based on the template
-  PoolTemplate.create(event.params.pool)
+  // TODO: Remove this but keep track of pools, if we get a pool we dont care about just skip
+  PoolTemplate.create(poolAddress)
   token0.save()
   token1.save()
   factory.save()

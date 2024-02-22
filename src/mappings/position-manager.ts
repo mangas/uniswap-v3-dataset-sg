@@ -1,21 +1,33 @@
 /* eslint-disable prefer-const */
 import {
-  Collect,
-  DecreaseLiquidity,
-  IncreaseLiquidity,
   NonfungiblePositionManager,
-  Transfer
 } from '../types/NonfungiblePositionManager/NonfungiblePositionManager'
-import { Bundle, Position, PositionSnapshot, Token } from '../types/schema'
+import { Position, PositionSnapshot, Token } from '../types/schema'
 import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI } from '../utils/constants'
-import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts'
+import { Address, BigInt, ByteArray, Bytes } from '@graphprotocol/graph-ts'
 import { convertTokenToDecimal, loadTransaction } from '../utils'
+import * as assembly from "../pb/assembly"
 
-function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
-  let position = Position.load(tokenId.toString())
+export interface GetPositionArgs {
+  address: Address,
+  tokenId: BigInt,
+  txDetails: TxDetails,
+};
+
+export interface TxDetails {
+  address: Address,
+  blockNumber: BigInt,
+  blockTimestamp: BigInt,
+  transactionHash: ByteArray,
+  transactionGasUsed: BigInt,
+  transactionGasPrice: BigInt,
+};
+
+function getPosition(event: GetPositionArgs): Position | null {
+  let position = Position.load(event.tokenId.toString())
   if (position === null) {
     let contract = NonfungiblePositionManager.bind(event.address)
-    let positionCall = contract.try_positions(tokenId)
+    let positionCall = contract.try_positions(event.tokenId)
 
     // the following call reverts in situations where the position is minted
     // and deleted in the same block - from my investigation this happens
@@ -25,7 +37,7 @@ function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
       let positionResult = positionCall.value
       let poolAddress = factoryContract.getPool(positionResult.value2, positionResult.value3, positionResult.value4)
 
-      position = new Position(tokenId.toString())
+      position = new Position(event.tokenId.toString())
       // The owner gets correctly updated in the Transfer handler
       position.owner = Address.fromString(ADDRESS_ZERO)
       position.pool = poolAddress.toHexString()
@@ -40,7 +52,7 @@ function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
       position.withdrawnToken1 = ZERO_BD
       position.collectedFeesToken0 = ZERO_BD
       position.collectedFeesToken1 = ZERO_BD
-      position.transaction = loadTransaction(event).id
+      position.transaction = loadTransaction(event.txDetails).id
       position.feeGrowthInside0LastX128 = positionResult.value8
       position.feeGrowthInside1LastX128 = positionResult.value9
     }
@@ -49,8 +61,8 @@ function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
   return position
 }
 
-function updateFeeVars(position: Position, event: ethereum.Event, tokenId: BigInt): Position {
-  let positionManagerContract = NonfungiblePositionManager.bind(event.address)
+function updateFeeVars(position: Position, address: Address, tokenId: BigInt): Position {
+  let positionManagerContract = NonfungiblePositionManager.bind(address)
   let positionResult = positionManagerContract.try_positions(tokenId)
   if (!positionResult.reverted) {
     position.feeGrowthInside0LastX128 = positionResult.value.value8
@@ -59,13 +71,13 @@ function updateFeeVars(position: Position, event: ethereum.Event, tokenId: BigIn
   return position
 }
 
-function savePositionSnapshot(position: Position, event: ethereum.Event): void {
-  let positionSnapshot = new PositionSnapshot(position.id.concat('#').concat(event.block.number.toString()))
+function savePositionSnapshot(position: Position, event: TxDetails): void {
+  let positionSnapshot = new PositionSnapshot(position.id.concat('#').concat(event.blockNumber.toString()))
   positionSnapshot.owner = position.owner
   positionSnapshot.pool = position.pool
   positionSnapshot.position = position.id
-  positionSnapshot.blockNumber = event.block.number
-  positionSnapshot.timestamp = event.block.timestamp
+  positionSnapshot.blockNumber = event.blockNumber
+  positionSnapshot.timestamp = event.blockTimestamp
   positionSnapshot.liquidity = position.liquidity
   positionSnapshot.depositedToken0 = position.depositedToken0
   positionSnapshot.depositedToken1 = position.depositedToken1
@@ -79,13 +91,20 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
   positionSnapshot.save()
 }
 
-export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
+export function handleIncreaseLiquidity(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.IncreaseLiquidity): void {
   // temp fix
-  if (event.block.number.equals(BigInt.fromI32(14317993))) {
+  if (txDetails.blockNumber.equals(BigInt.fromI32(14317993))) {
     return
   }
 
-  let position = getPosition(event, event.params.tokenId)
+  const address = Address.fromString(ADDRESS_ZERO);
+  const tokenId = BigInt.fromString(event.token_id);
+
+  let position = getPosition({
+    address: address,
+    tokenId: tokenId,
+    txDetails: txDetails,
+  })
 
   // position was not able to be fetched
   if (position == null) {
@@ -100,27 +119,34 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   let token0 = Token.load(position.token0)
   let token1 = Token.load(position.token1)
 
-  let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals)
-  let amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals)
+  let amount0 = convertTokenToDecimal(BigInt.fromString(event.amount0), token0.decimals)
+  let amount1 = convertTokenToDecimal(BigInt.fromString(event.amount1), token1.decimals)
 
-  position.liquidity = position.liquidity.plus(event.params.liquidity)
+  position.liquidity = position.liquidity.plus(BigInt.fromString(event.liquidity))
   position.depositedToken0 = position.depositedToken0.plus(amount0)
   position.depositedToken1 = position.depositedToken1.plus(amount1)
 
-  updateFeeVars(position!, event, event.params.tokenId)
+  updateFeeVars(position!, address, tokenId)
 
   position.save()
 
-  savePositionSnapshot(position!, event)
+  savePositionSnapshot(position!, txDetails)
 }
 
-export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
+export function handleDecreaseLiquidity(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.DecreaseLiquidity): void {
   // temp fix
-  if (event.block.number == BigInt.fromI32(14317993)) {
+  if (txDetails.blockNumber == BigInt.fromI32(14317993)) {
     return
   }
 
-  let position = getPosition(event, event.params.tokenId)
+  const address = Address.fromString(ADDRESS_ZERO);
+  const tokenId = BigInt.fromString(event.token_id);
+
+  let position = getPosition({
+    address: address,
+    tokenId: tokenId,
+    txDetails: txDetails,
+  })
 
   // position was not able to be fetched
   if (position == null) {
@@ -134,20 +160,28 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
 
   let token0 = Token.load(position.token0)
   let token1 = Token.load(position.token1)
-  let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals)
-  let amount1 = convertTokenToDecimal(event.params.amount1, token1.decimals)
+  let amount0 = convertTokenToDecimal(BigInt.fromString(event.amount0), token0.decimals)
+  let amount1 = convertTokenToDecimal(BigInt.fromString(event.amount1), token1.decimals)
 
-  position.liquidity = position.liquidity.minus(event.params.liquidity)
+  position.liquidity = position.liquidity.minus(BigInt.fromString(event.liquidity))
   position.withdrawnToken0 = position.withdrawnToken0.plus(amount0)
   position.withdrawnToken1 = position.withdrawnToken1.plus(amount1)
 
-  position = updateFeeVars(position!, event, event.params.tokenId)
+  position = updateFeeVars(position!, address, tokenId)
   position.save()
-  savePositionSnapshot(position!, event)
+  savePositionSnapshot(position!, txDetails)
 }
 
-export function handleCollect(event: Collect): void {
-  let position = getPosition(event, event.params.tokenId)
+export function handleCollect(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.Collect): void {
+  const address = Address.fromString(ADDRESS_ZERO);
+  const tokenId = BigInt.fromString(event.token_id);
+
+  let position = getPosition({
+    address: address,
+    tokenId: tokenId,
+    txDetails: txDetails,
+  })
+
   // position was not able to be fetched
   if (position == null) {
     return
@@ -157,25 +191,32 @@ export function handleCollect(event: Collect): void {
   }
 
   let token0 = Token.load(position.token0)
-  let amount0 = convertTokenToDecimal(event.params.amount0, token0.decimals)
+  let amount0 = convertTokenToDecimal(BigInt.fromString(event.amount0), token0.decimals)
   position.collectedFeesToken0 = position.collectedFeesToken0.plus(amount0)
   position.collectedFeesToken1 = position.collectedFeesToken1.plus(amount0)
 
-  position = updateFeeVars(position!, event, event.params.tokenId)
+  position = updateFeeVars(position!, address, tokenId)
   position.save()
-  savePositionSnapshot(position!, event)
+  savePositionSnapshot(position!, txDetails)
 }
 
-export function handleTransfer(event: Transfer): void {
-  let position = getPosition(event, event.params.tokenId)
+export function handleTransfer(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.Transfer): void {
+  const address = Address.fromString(ADDRESS_ZERO);
+  const tokenId = BigInt.fromString(event.token_id);
+
+  let position = getPosition({
+    address: address,
+    tokenId: tokenId,
+    txDetails: txDetails,
+  })
 
   // position was not able to be fetched
   if (position == null) {
     return
   }
 
-  position.owner = event.params.to
+  position.owner = Bytes.fromUint8Array(Uint8Array.from(event.to));
   position.save()
 
-  savePositionSnapshot(position!, event)
+  savePositionSnapshot(position!, txDetails)
 }

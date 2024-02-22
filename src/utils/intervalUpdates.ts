@@ -15,14 +15,15 @@ import {
 } from './../types/schema'
 import { FACTORY_ADDRESS } from './constants'
 import { ethereum } from '@graphprotocol/graph-ts'
+import { TxDetails } from '../mappings/position-manager'
 
 /**
  * Tracks global aggregate data over daily windows
  * @param event
  */
-export function updateUniswapDayData(event: ethereum.Event): UniswapDayData {
+export function updateUniswapDayData(event: TxDetails): UniswapDayData {
   let uniswap = Factory.load(FACTORY_ADDRESS)
-  let timestamp = event.block.timestamp.toI32()
+  let timestamp = event.blockTimestamp.toI32()
   let dayID = timestamp / 86400 // rounded
   let dayStartTimestamp = dayID * 86400
   let uniswapDayData = UniswapDayData.load(dayID.toString())
@@ -40,8 +41,8 @@ export function updateUniswapDayData(event: ethereum.Event): UniswapDayData {
   return uniswapDayData as UniswapDayData
 }
 
-export function updatePoolDayData(event: ethereum.Event): PoolDayData {
-  let timestamp = event.block.timestamp.toI32()
+export function updatePoolDayData(event: TxDetails): PoolDayData {
+  let timestamp = event.blockTimestamp.toI32()
   let dayID = timestamp / 86400
   let dayStartTimestamp = dayID * 86400
   let dayPoolID = event.address
@@ -89,8 +90,8 @@ export function updatePoolDayData(event: ethereum.Event): PoolDayData {
   return poolDayData as PoolDayData
 }
 
-export function updatePoolHourData(event: ethereum.Event): PoolHourData {
-  let timestamp = event.block.timestamp.toI32()
+export function updatePoolHourData(event: TxDetails): PoolHourData {
+  let timestamp = event.blockTimestamp.toI32()
   let hourIndex = timestamp / 3600 // get unique hour within unix history
   let hourStartUnix = hourIndex * 3600 // want the rounded effect
   let hourPoolID = event.address
@@ -140,9 +141,9 @@ export function updatePoolHourData(event: ethereum.Event): PoolHourData {
   return poolHourData as PoolHourData
 }
 
-export function updateTokenDayData(token: Token, event: ethereum.Event): TokenDayData {
+export function updateTokenDayData(token: Token, event: TxDetails): TokenDayData {
   let bundle = Bundle.load('1')
-  let timestamp = event.block.timestamp.toI32()
+  let timestamp = event.blockTimestamp.toI32()
   let dayID = timestamp / 86400
   let dayStartTimestamp = dayID * 86400
   let tokenDayID = token.id
@@ -183,9 +184,9 @@ export function updateTokenDayData(token: Token, event: ethereum.Event): TokenDa
   return tokenDayData as TokenDayData
 }
 
-export function updateTokenHourData(token: Token, event: ethereum.Event): TokenHourData {
+export function updateTokenHourData(token: Token, event: TxDetails): TokenHourData {
   let bundle = Bundle.load('1')
-  let timestamp = event.block.timestamp.toI32()
+  let timestamp = event.blockTimestamp.toI32()
   let hourIndex = timestamp / 3600 // get unique hour within unix history
   let hourStartUnix = hourIndex * 3600 // want the rounded effect
   let tokenHourID = token.id
@@ -226,8 +227,8 @@ export function updateTokenHourData(token: Token, event: ethereum.Event): TokenH
   return tokenHourData as TokenHourData
 }
 
-export function updateTickDayData(tick: Tick, event: ethereum.Event): TickDayData {
-  let timestamp = event.block.timestamp.toI32()
+export function updateTickDayData(tick: Tick, event: TxDetails): TickDayData {
+  let timestamp = event.blockTimestamp.toI32()
   let dayID = timestamp / 86400
   let dayStartTimestamp = dayID * 86400
   let tickDayDataID = tick.id.concat('-').concat(dayID.toString())

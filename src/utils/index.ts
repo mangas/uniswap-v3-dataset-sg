@@ -1,7 +1,8 @@
 /* eslint-disable prefer-const */
-import { BigInt, BigDecimal, ethereum } from '@graphprotocol/graph-ts'
+import { BigInt, BigDecimal } from '@graphprotocol/graph-ts'
 import { Transaction } from '../types/schema'
 import { ONE_BI, ZERO_BI, ZERO_BD, ONE_BD } from '../utils/constants'
+import { TxDetails } from '../mappings/position-manager'
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
   let bd = BigDecimal.fromString('1')
@@ -80,15 +81,15 @@ export function convertEthToDecimal(eth: BigInt): BigDecimal {
   return eth.toBigDecimal().div(exponentToBigDecimal(18))
 }
 
-export function loadTransaction(event: ethereum.Event): Transaction {
-  let transaction = Transaction.load(event.transaction.hash.toHexString())
+export function loadTransaction(event: TxDetails): Transaction {
+  let transaction = Transaction.load(event.transactionHash.toHexString())
   if (transaction === null) {
-    transaction = new Transaction(event.transaction.hash.toHexString())
+    transaction = new Transaction(event.transactionHash.toHexString())
   }
-  transaction.blockNumber = event.block.number
-  transaction.timestamp = event.block.timestamp
-  transaction.gasUsed = event.transaction.gasUsed
-  transaction.gasPrice = event.transaction.gasPrice
+  transaction.blockNumber = event.blockNumber
+  transaction.timestamp = event.blockTimestamp
+  transaction.gasUsed = event.transactionGasUsed
+  transaction.gasPrice = event.transactionGasPrice
   transaction.save()
   return transaction as Transaction
 }
