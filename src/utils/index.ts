@@ -2,7 +2,7 @@
 import { BigInt, BigDecimal } from '@graphprotocol/graph-ts'
 import { Transaction } from '../types/schema'
 import { ONE_BI, ZERO_BI, ZERO_BD, ONE_BD } from '../utils/constants'
-import { TxDetails } from '../mappings/position-manager'
+import { TxDetails } from '../mappings/fast'
 
 export function exponentToBigDecimal(decimals: BigInt): BigDecimal {
   let bd = BigDecimal.fromString('1')

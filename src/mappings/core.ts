@@ -15,23 +15,27 @@ import {
 } from '../utils/intervalUpdates'
 import { createTick, feeTierToTickSpacing } from '../utils/tick'
 import * as assembly from "../pb/assembly"
-import { TxDetails } from './position-manager'
+import { TxDetails } from './fast'
 
 export function handleInitialize(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.Initialize): void {
   const addr = txDetails.address.toHexString();
 
   // update pool sqrt price and tick
   let pool = Pool.load(addr)
+  // Only process if it's a relevant pool
+  if (pool == null) return;
+
   pool.sqrtPrice = BigInt.fromString(event.sqrt_price_x96);
   pool.tick = BigInt.fromString(event.tick)
   pool.save()
 
   // update token prices
-  let token0 = Token.load(pool.token0)
-  let token1 = Token.load(pool.token1)
+  let token0 = Token.load(pool.token0)!
+  let token1 = Token.load(pool.token1)!
 
   // update ETH price now that prices could have changed
-  let bundle = Bundle.load('1')
+  let bundle = Bundle.load('1')!
+
   bundle.ethPriceUSD = getEthPriceInUSD()
   bundle.save()
 
@@ -46,13 +50,16 @@ export function handleInitialize(txDetails: TxDetails, event: assembly.edgeandno
 }
 
 export function handleMint(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.Mint): void {
-  let bundle = Bundle.load('1')
   let poolAddress = txDetails.address.toHexString()
   let pool = Pool.load(poolAddress)
-  let factory = Factory.load(FACTORY_ADDRESS)
+  if (pool == null) return;
 
-  let token0 = Token.load(pool.token0)
-  let token1 = Token.load(pool.token1)
+  let bundle = Bundle.load('1')!
+
+  let factory = Factory.load(FACTORY_ADDRESS)!
+
+  let token0 = Token.load(pool.token0)!
+  let token1 = Token.load(pool.token1)!
   let amount0 = convertTokenToDecimal(BigInt.fromString(event.amount0), token0.decimals)
   let amount1 = convertTokenToDecimal(BigInt.fromString(event.amount1), token1.decimals)
 
@@ -110,20 +117,20 @@ export function handleMint(txDetails: TxDetails, event: assembly.edgeandnode.uni
   mint.pool = pool.id
   mint.token0 = pool.token0
   mint.token1 = pool.token1
-  mint.owner = Bytes.fromUint8Array(Uint8Array.from(event.owner));
-  mint.sender = Bytes.fromUint8Array(Uint8Array.from(event.sender));
-  mint.origin = Bytes.fromUint8Array(Uint8Array.from(event.transaction_from));
+  mint.owner = Bytes.fromUint8Array(changetype<Uint8Array>(event.owner));
+  mint.sender = Bytes.fromUint8Array(changetype<Uint8Array>(event.sender));
+  mint.origin = Bytes.fromUint8Array(changetype<Uint8Array>(event.transaction_from));
   mint.amount = BigInt.fromString(event.amount)
   mint.amount0 = amount0
   mint.amount1 = amount1
   mint.amountUSD = amountUSD
   mint.tickLower = tickLower;
   mint.tickUpper = tickUpper;
-  mint.logIndex = event.log_index
+  mint.logIndex = BigInt.fromI32(event.log_index)
 
   // tick entities
-  let lowerTickIdx = event.tick_lower
-  let upperTickIdx = event.tick_upper
+  let lowerTickIdx = I32.parseInt(event.tick_lower)
+  let upperTickIdx = I32.parseInt(event.tick_upper)
 
   let lowerTickId = poolAddress + '#' + tickLower.toString()
   let upperTickId = poolAddress + '#' + tickUpper.toString()
@@ -162,19 +169,20 @@ export function handleMint(txDetails: TxDetails, event: assembly.edgeandnode.uni
   factory.save()
   mint.save()
 
-  // Update inner tick vars and save the ticks
-  updateTickFeeVarsAndSave(lowerTick!, txDetails)
-  updateTickFeeVarsAndSave(upperTick!, txDetails)
+  // Update inner tick vars and savethe ticks
+  updateTickFeeVarsAndSave(lowerTick, txDetails)
+  updateTickFeeVarsAndSave(upperTick, txDetails)
 }
 
 export function handleBurn(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.Burn): void {
-  let bundle = Bundle.load('1')
   let poolAddress = txDetails.address.toHexString()
   let pool = Pool.load(poolAddress)
-  let factory = Factory.load(FACTORY_ADDRESS)
+  if (pool == null) return;
+  let factory = Factory.load(FACTORY_ADDRESS)!
+  let bundle = Bundle.load('1')!
 
-  let token0 = Token.load(pool.token0)
-  let token1 = Token.load(pool.token1)
+  let token0 = Token.load(pool.token0)!
+  let token1 = Token.load(pool.token1)!
   let amount0 = convertTokenToDecimal(BigInt.fromString(event.amount0), token0.decimals)
   let amount1 = convertTokenToDecimal(BigInt.fromString(event.amount1), token1.decimals)
 
@@ -230,21 +238,21 @@ export function handleBurn(txDetails: TxDetails, event: assembly.edgeandnode.uni
   burn.pool = pool.id
   burn.token0 = pool.token0
   burn.token1 = pool.token1
-  burn.owner = Bytes.fromUint8Array(Uint8Array.from(event.owner))
-  burn.origin = Bytes.fromUint8Array(Uint8Array.from(event.transaction_from))
+  burn.owner = Bytes.fromUint8Array(changetype<Uint8Array>(event.owner))
+  burn.origin = Bytes.fromUint8Array(changetype<Uint8Array>(event.transaction_from))
   burn.amount = amount
   burn.amount0 = amount0
   burn.amount1 = amount1
   burn.amountUSD = amountUSD
   burn.tickLower = BigInt.fromString(event.tick_lower)
   burn.tickUpper = BigInt.fromString(event.tick_upper)
-  burn.logIndex = event.log_index
+  burn.logIndex = BigInt.fromI32(event.log_index)
 
   // tick entities
-  let lowerTickId = poolAddress + '#' + BigInt.fromI32(event.tick_lower).toString()
-  let upperTickId = poolAddress + '#' + BigInt.fromI32(event.tick_upper).toString()
-  let lowerTick = Tick.load(lowerTickId)
-  let upperTick = Tick.load(upperTickId)
+  let lowerTickId = poolAddress + '#' + BigInt.fromString(event.tick_lower).toString()
+  let upperTickId = poolAddress + '#' + BigInt.fromString(event.tick_upper).toString()
+  let lowerTick = Tick.load(lowerTickId)!
+  let upperTick = Tick.load(upperTickId)!
   lowerTick.liquidityGross = lowerTick.liquidityGross.minus(amount)
   lowerTick.liquidityNet = lowerTick.liquidityNet.minus(amount)
   upperTick.liquidityGross = upperTick.liquidityGross.minus(amount)
@@ -257,8 +265,8 @@ export function handleBurn(txDetails: TxDetails, event: assembly.edgeandnode.uni
   updateTokenDayData(token1 as Token, txDetails)
   updateTokenHourData(token0 as Token, txDetails)
   updateTokenHourData(token1 as Token, txDetails)
-  updateTickFeeVarsAndSave(lowerTick!, txDetails)
-  updateTickFeeVarsAndSave(upperTick!, txDetails)
+  updateTickFeeVarsAndSave(lowerTick, txDetails)
+  updateTickFeeVarsAndSave(upperTick, txDetails)
 
   token0.save()
   token1.save()
@@ -268,17 +276,18 @@ export function handleBurn(txDetails: TxDetails, event: assembly.edgeandnode.uni
 }
 
 export function handleSwap(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.Swap): void {
-  let bundle = Bundle.load('1')
-  let factory = Factory.load(FACTORY_ADDRESS)
   let pool = Pool.load(txDetails.address.toHexString())
+  if (pool == null) return;
 
   // hot fix for bad pricing
   if (pool.id == '0x9663f2ca0454accad3e094448ea6f77443880454') {
     return
   }
+  let bundle = Bundle.load('1')!
+  let factory = Factory.load(FACTORY_ADDRESS)!
 
-  let token0 = Token.load(pool.token0)
-  let token1 = Token.load(pool.token1)
+  let token0 = Token.load(pool.token0)!
+  let token1 = Token.load(pool.token1)!
 
   let oldTick = pool.tick!
 
@@ -388,15 +397,15 @@ export function handleSwap(txDetails: TxDetails, event: assembly.edgeandnode.uni
   swap.pool = pool.id
   swap.token0 = pool.token0
   swap.token1 = pool.token1
-  swap.sender = Bytes.fromUint8Array(Uint8Array.from(event.sender));
-  swap.origin = Bytes.fromUint8Array(Uint8Array.from(event.transaction_from));
-  swap.recipient = Bytes.fromUint8Array(Uint8Array.from(event.recipient));
+  swap.sender = Bytes.fromUint8Array(changetype<Uint8Array>(event.sender));
+  swap.origin = Bytes.fromUint8Array(changetype<Uint8Array>(event.transaction_from));
+  swap.recipient = Bytes.fromUint8Array(changetype<Uint8Array>(event.recipient));
   swap.amount0 = amount0
   swap.amount1 = amount1
   swap.amountUSD = amountTotalUSDTracked
   swap.tick = BigInt.fromString(event.tick)
   swap.sqrtPriceX96 = BigInt.fromString(event.sqrt_price_x96)
-  swap.logIndex = event.log_index
+  swap.logIndex = BigInt.fromI32(event.log_index)
 
   // update fee growth
   let poolContract = PoolABI.bind(txDetails.address)
@@ -498,6 +507,8 @@ export function handleSwap(txDetails: TxDetails, event: assembly.edgeandnode.uni
 export function handleFlash(txDetails: TxDetails): void {
   // update fee growth
   let pool = Pool.load(txDetails.address.toHexString())
+  if (pool == null) return;
+
   let poolContract = PoolABI.bind(txDetails.address)
   let feeGrowthGlobal0X128 = poolContract.feeGrowthGlobal0X128()
   let feeGrowthGlobal1X128 = poolContract.feeGrowthGlobal1X128()
@@ -515,18 +526,18 @@ function updateTickFeeVarsAndSave(tick: Tick, event: TxDetails): void {
   tick.feeGrowthOutside1X128 = tickResult.value3
   tick.save()
 
-  updateTickDayData(tick!, event)
+  updateTickDayData(tick, event)
 }
 
-function loadTickUpdateFeeVarsAndSave(tickId: string, event: TxDetails): void {
+function loadTickUpdateFeeVarsAndSave(tickId: i32, event: TxDetails): void {
   let poolAddress = event.address
   let tick = Tick.load(
     poolAddress
       .toHexString()
       .concat('#')
-      .concat(tickId)
+      .concat(tickId.toString())
   )
   if (tick !== null) {
-    updateTickFeeVarsAndSave(tick!, event)
+    updateTickFeeVarsAndSave(tick, event)
   }
 }

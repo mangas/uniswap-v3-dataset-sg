@@ -3,7 +3,7 @@ import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { bigDecimalExponated, safeDiv } from '.'
 import { Tick } from '../types/schema'
 import { ONE_BD, ZERO_BD, ZERO_BI } from './constants'
-import { TxDetails } from '../mappings/position-manager'
+import { TxDetails } from '../mappings/fast'
 
 export function createTick(tickId: string, tickIdx: i32, poolId: string, event: TxDetails): Tick {
   let tick = new Tick(tickId)

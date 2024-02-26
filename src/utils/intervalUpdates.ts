@@ -14,15 +14,13 @@ import {
   Tick
 } from './../types/schema'
 import { FACTORY_ADDRESS } from './constants'
-import { ethereum } from '@graphprotocol/graph-ts'
-import { TxDetails } from '../mappings/position-manager'
-
+import { TxDetails } from '../mappings/fast'
 /**
  * Tracks global aggregate data over daily windows
  * @param event
  */
 export function updateUniswapDayData(event: TxDetails): UniswapDayData {
-  let uniswap = Factory.load(FACTORY_ADDRESS)
+  let uniswap = Factory.load(FACTORY_ADDRESS)!
   let timestamp = event.blockTimestamp.toI32()
   let dayID = timestamp / 86400 // rounded
   let dayStartTimestamp = dayID * 86400
@@ -49,7 +47,7 @@ export function updatePoolDayData(event: TxDetails): PoolDayData {
     .toHexString()
     .concat('-')
     .concat(dayID.toString())
-  let pool = Pool.load(event.address.toHexString())
+  let pool = Pool.load(event.address.toHexString())!
   let poolDayData = PoolDayData.load(dayPoolID)
   if (poolDayData === null) {
     poolDayData = new PoolDayData(dayPoolID)
@@ -98,7 +96,7 @@ export function updatePoolHourData(event: TxDetails): PoolHourData {
     .toHexString()
     .concat('-')
     .concat(hourIndex.toString())
-  let pool = Pool.load(event.address.toHexString())
+  let pool = Pool.load(event.address.toHexString())!
   let poolHourData = PoolHourData.load(hourPoolID)
   if (poolHourData === null) {
     poolHourData = new PoolHourData(hourPoolID)
@@ -142,7 +140,7 @@ export function updatePoolHourData(event: TxDetails): PoolHourData {
 }
 
 export function updateTokenDayData(token: Token, event: TxDetails): TokenDayData {
-  let bundle = Bundle.load('1')
+  let bundle = Bundle.load('1')!
   let timestamp = event.blockTimestamp.toI32()
   let dayID = timestamp / 86400
   let dayStartTimestamp = dayID * 86400
@@ -185,7 +183,7 @@ export function updateTokenDayData(token: Token, event: TxDetails): TokenDayData
 }
 
 export function updateTokenHourData(token: Token, event: TxDetails): TokenHourData {
-  let bundle = Bundle.load('1')
+  let bundle = Bundle.load('1')!
   let timestamp = event.blockTimestamp.toI32()
   let hourIndex = timestamp / 3600 // get unique hour within unix history
   let hourStartUnix = hourIndex * 3600 // want the rounded effect

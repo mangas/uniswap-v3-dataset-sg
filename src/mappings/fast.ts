@@ -1,22 +1,52 @@
 import * as assembly from "../pb/assembly"
 import { handlePoolCreated } from './factory';
-import { handleIncreaseLiquidity, handleDecreaseLiquidity, handleCollect, handleTransfer, TxDetails } from './position-manager';
+import { handleIncreaseLiquidity, handleDecreaseLiquidity, handleCollect, handleTransfer } from './position-manager';
 import { handleInitialize, handleSwap, handleMint, handleBurn, handleFlash } from './core';
-import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ByteArray } from "@graphprotocol/graph-ts";
 
 
-function txDetailsFromHeader(header: assembly.edgeandnode.v1.Event): TxDetails {
-  return {
-    address: Address.fromUint8Array(Uint8Array.from(header.address)),
-    blockNumber: header.block_number,
-    blockTimestamp: BigInt.fromString(header.block_timestamp),
-    transactionGasUsed: BigInt.fromString(header.tx_gas_used),
-    transactionGasPrice: BigInt.fromByteArray(Bytes.fromUint8Array(Uint8Array.from(header.tx_gas_price))),
-    transactionHash: Bytes.fromUint8Array(Uint8Array.from(header.tx_hash)),
-  };
+export class TxDetails {
+  address: Address;
+  blockNumber: BigInt;
+  blockTimestamp: BigInt;
+  transactionHash: ByteArray;
+  transactionGasUsed: BigInt;
+  transactionGasPrice: BigInt;
+  constructor(
+    address: Address,
+    blockNumber: BigInt,
+    blockTimestamp: BigInt,
+    transactionHash: ByteArray,
+    transactionGasUsed: BigInt,
+    transactionGasPrice: BigInt,
+  ) {
+
+    this.address =
+      address;
+    this.blockNumber =
+      blockNumber;
+    this.blockTimestamp =
+      blockTimestamp;
+    this.transactionHash =
+      transactionHash;
+    this.transactionGasUsed =
+      transactionGasUsed;
+    this.transactionGasPrice =
+      transactionGasPrice;
+  }
+};
+
+function txDetailsFromHeader(header: assembly.edgeandnode.uniswap.v1.Event): TxDetails {
+  return new TxDetails(
+    Address.fromBytes(changetype<Bytes>(header.address)),
+    BigInt.fromI32(header.block_number),
+    BigInt.fromString(header.block_timestamp),
+    Bytes.fromByteArray(changetype<ByteArray>(header.tx_hash)),
+    BigInt.fromString(header.tx_gas_used),
+    BigInt.fromByteArray(changetype<ByteArray>(header.tx_gas_price.toString())),
+  );
 }
 
-const EventType = assembly.edgeandnode.uniswap.v1.EventType;
 
 export function handleBlock(blockBytes: Uint8Array): void {
   const decoded = assembly.edgeandnode.uniswap.v1.Events.decode(blockBytes.buffer);
@@ -24,54 +54,55 @@ export function handleBlock(blockBytes: Uint8Array): void {
   decoded.events.forEach((event: assembly.edgeandnode.uniswap.v1.Event) => {
     const txDetails = txDetailsFromHeader(event);
     switch (event.type) {
-      case EventType.POOL_CREATED: {
-        const e = assembly.edgeandnode.uniswap.v1.PoolCreated.decode(Uint8Array.from(event.event.value));
+      case 0: {
+        const e = assembly.edgeandnode.uniswap.v1.PoolCreated.decode(changetype<Uint8Array>(event.event.value).buffer);
         handlePoolCreated(txDetails, e);
         break;
       }
       // PositionManager
-      case EventType.INCREASE_LIQUIDITY: {
-        const e = assembly.edgeandnode.uniswap.v1.IncreaseLiquidity.decode(Uint8Array.from(event.event.value));
+      case 1: {
+        const e = assembly.edgeandnode.uniswap.v1.IncreaseLiquidity.decode(changetype<Uint8Array>(event.event.value).buffer);
         handleIncreaseLiquidity(txDetails, e);
         break;
       }
-      case EventType.DECREASE_LIQUIDITY: {
-        const e = assembly.edgeandnode.uniswap.v1.DecreaseLiquidity.decode(Uint8Array.from(event.event.value));
+      case 2: {
+        const e = assembly.edgeandnode.uniswap.v1.DecreaseLiquidity.decode(changetype<Uint8Array>(event.event.value).buffer);
         handleDecreaseLiquidity(txDetails, e);
         break;
       }
-      case EventType.COLLECT: {
-        const e = assembly.edgeandnode.uniswap.v1.Collect.decode(Uint8Array.from(event.event.value));
+      case 3: {
+        const e = assembly.edgeandnode.uniswap.v1.Collect.decode(changetype<Uint8Array>(event.event.value).buffer);
         handleCollect(txDetails, e);
         break;
       }
-      case EventType.TRANSFER: {
-        const e = assembly.edgeandnode.uniswap.v1.Transfer.decode(Uint8Array.from(event.event.value));
+      case 4: {
+        const e = assembly.edgeandnode.uniswap.v1.Transfer.decode(changetype<Uint8Array>(event.event.value).buffer);
         handleTransfer(txDetails, e);
         break;
       }
       // Pool
-      case EventType.INITIALIZE: {
-        const e = assembly.edgeandnode.uniswap.v1.Initialize.decode(Uint8Array.from(event.event.value));
+      case 5: {
+        const e = assembly.edgeandnode.uniswap.v1.Initialize.decode(changetype<Uint8Array>(event.event.value).buffer);
         handleInitialize(txDetails, e);
         break;
       }
-      case EventType.SWAP: {
-        const e = assembly.edgeandnode.uniswap.v1.Swap.decode(Uint8Array.from(event.event.value));
+      case 6: {
+        const e = assembly.edgeandnode.uniswap.v1.Swap.decode(changetype<Uint8Array>(event.event.value).buffer);
         handleSwap(txDetails, e);
         break;
       }
-      case EventType.MINT: {
-        const e = assembly.edgeandnode.uniswap.v1.Mint.decode(Uint8Array.from(event.event.value));
+      case 7: {
+        const e = assembly.edgeandnode.uniswap.v1.Mint.decode(changetype<Uint8Array>(event.event.value).buffer);
         handleMint(txDetails, e);
         break;
       }
-      case EventType.BURN: {
-        const e = assembly.edgeandnode.uniswap.v1.Burn.decode(Uint8Array.from(event.event.value));
+      case 8: {
+        const e = assembly.edgeandnode.uniswap.v1.Burn.decode(changetype<Uint8Array>(event.event.value).buffer);
         handleBurn(txDetails, e);
         break;
       }
-      case EventType.FLASH: {
+      // FLASH
+      case 9: {
         handleFlash(txDetails);
         break;
       }

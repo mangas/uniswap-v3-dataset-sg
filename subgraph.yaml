@@ -12,5 +12,5 @@ dataSources:
     mapping:
       kind: substreams/graph-entities
       apiVersion: 0.0.7
-      file: ./src/mappings/fs.ts
+      file: ./src/mappings/fast.ts
       handler: handleBlock

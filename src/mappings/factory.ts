@@ -3,16 +3,21 @@ import { WHITELIST_TOKENS } from './../utils/pricing'
 import { FACTORY_ADDRESS, ZERO_BI, ONE_BI, ZERO_BD, ADDRESS_ZERO } from './../utils/constants'
 import { Factory } from '../types/schema'
 import { Pool, Token, Bundle } from '../types/schema'
-import { Pool as PoolTemplate } from '../types/templates'
 import { fetchTokenSymbol, fetchTokenName, fetchTokenTotalSupply, fetchTokenDecimals } from '../utils/token'
-import { log, BigInt, Address } from '@graphprotocol/graph-ts'
+import { log, BigInt, Address, Bytes } from '@graphprotocol/graph-ts'
 import * as assembly from "../pb/assembly"
-import { TxDetails } from './position-manager'
+import { TxDetails } from './fast'
 
 export function handlePoolCreated(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.PoolCreated): void {
-  const poolAddress = Address.fromUint8Array(Uint8Array.from(event.pool));
-  const token0Address = Address.fromUint8Array(Uint8Array.from(event.token0));
-  const token1Address = Address.fromUint8Array(Uint8Array.from(event.token1));
+
+  // Only care about Pools created by the specific factory
+  if (txDetails.address.toHexString() != FACTORY_ADDRESS) {
+    return;
+  }
+
+  const poolAddress: Address = Address.fromBytes(changetype<Bytes>(event.pool));
+  const token0Address: Address = Address.fromBytes(changetype<Bytes>(event.token0));
+  const token1Address: Address = Address.fromBytes(changetype<Bytes>(event.token1));
   // temp fix
   if (poolAddress == Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')) {
     return
@@ -52,7 +57,7 @@ export function handlePoolCreated(txDetails: TxDetails, event: assembly.edgeandn
     token0 = new Token(token0Address.toHexString())
     token0.symbol = fetchTokenSymbol(token0Address)
     token0.name = fetchTokenName(token0Address)
-    token0.totalSupply = fetchTokenTotalSupply(token0Address)
+    token0.totalSupply = fetchTokenTotalSupply(token0Address)!
     let decimals = fetchTokenDecimals(token0Address)
 
     // bail if we couldn't figure out the decimals
@@ -79,7 +84,7 @@ export function handlePoolCreated(txDetails: TxDetails, event: assembly.edgeandn
     token1 = new Token(token1Address.toHexString())
     token1.symbol = fetchTokenSymbol(token1Address)
     token1.name = fetchTokenName(token1Address)
-    token1.totalSupply = fetchTokenTotalSupply(token1Address)
+    token1.totalSupply = fetchTokenTotalSupply(token1Address)!
     let decimals = fetchTokenDecimals(token1Address)
     // bail if we couldn't figure out the decimals
     if (decimals === null) {
@@ -142,9 +147,6 @@ export function handlePoolCreated(txDetails: TxDetails, event: assembly.edgeandn
   pool.collectedFeesUSD = ZERO_BD
 
   pool.save()
-  // create the tracked contract based on the template
-  // TODO: Remove this but keep track of pools, if we get a pool we dont care about just skip
-  PoolTemplate.create(poolAddress)
   token0.save()
   token1.save()
   factory.save()

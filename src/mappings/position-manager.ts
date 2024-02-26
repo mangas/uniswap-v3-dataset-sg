@@ -7,27 +7,15 @@ import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI } from '../utils/consta
 import { Address, BigInt, ByteArray, Bytes } from '@graphprotocol/graph-ts'
 import { convertTokenToDecimal, loadTransaction } from '../utils'
 import * as assembly from "../pb/assembly"
+import { TxDetails } from './fast'
 
-export interface GetPositionArgs {
-  address: Address,
-  tokenId: BigInt,
-  txDetails: TxDetails,
-};
 
-export interface TxDetails {
-  address: Address,
-  blockNumber: BigInt,
-  blockTimestamp: BigInt,
-  transactionHash: ByteArray,
-  transactionGasUsed: BigInt,
-  transactionGasPrice: BigInt,
-};
 
-function getPosition(event: GetPositionArgs): Position | null {
-  let position = Position.load(event.tokenId.toString())
+function getPosition(address: Address, tokenId: BigInt, txDetails: TxDetails): Position | null {
+  let position = Position.load(tokenId.toString())
   if (position === null) {
-    let contract = NonfungiblePositionManager.bind(event.address)
-    let positionCall = contract.try_positions(event.tokenId)
+    let contract = NonfungiblePositionManager.bind(address)
+    let positionCall = contract.try_positions(tokenId)
 
     // the following call reverts in situations where the position is minted
     // and deleted in the same block - from my investigation this happens
@@ -37,7 +25,7 @@ function getPosition(event: GetPositionArgs): Position | null {
       let positionResult = positionCall.value
       let poolAddress = factoryContract.getPool(positionResult.value2, positionResult.value3, positionResult.value4)
 
-      position = new Position(event.tokenId.toString())
+      position = new Position(tokenId.toString())
       // The owner gets correctly updated in the Transfer handler
       position.owner = Address.fromString(ADDRESS_ZERO)
       position.pool = poolAddress.toHexString()
@@ -52,7 +40,7 @@ function getPosition(event: GetPositionArgs): Position | null {
       position.withdrawnToken1 = ZERO_BD
       position.collectedFeesToken0 = ZERO_BD
       position.collectedFeesToken1 = ZERO_BD
-      position.transaction = loadTransaction(event.txDetails).id
+      position.transaction = loadTransaction(txDetails).id
       position.feeGrowthInside0LastX128 = positionResult.value8
       position.feeGrowthInside1LastX128 = positionResult.value9
     }
@@ -100,11 +88,11 @@ export function handleIncreaseLiquidity(txDetails: TxDetails, event: assembly.ed
   const address = Address.fromString(ADDRESS_ZERO);
   const tokenId = BigInt.fromString(event.token_id);
 
-  let position = getPosition({
-    address: address,
-    tokenId: tokenId,
-    txDetails: txDetails,
-  })
+  let position = getPosition(
+    address,
+    tokenId,
+    txDetails,
+  )
 
   // position was not able to be fetched
   if (position == null) {
@@ -116,8 +104,8 @@ export function handleIncreaseLiquidity(txDetails: TxDetails, event: assembly.ed
     return
   }
 
-  let token0 = Token.load(position.token0)
-  let token1 = Token.load(position.token1)
+  let token0 = Token.load(position.token0)!
+  let token1 = Token.load(position.token1)!
 
   let amount0 = convertTokenToDecimal(BigInt.fromString(event.amount0), token0.decimals)
   let amount1 = convertTokenToDecimal(BigInt.fromString(event.amount1), token1.decimals)
@@ -126,11 +114,11 @@ export function handleIncreaseLiquidity(txDetails: TxDetails, event: assembly.ed
   position.depositedToken0 = position.depositedToken0.plus(amount0)
   position.depositedToken1 = position.depositedToken1.plus(amount1)
 
-  updateFeeVars(position!, address, tokenId)
+  updateFeeVars(position, address, tokenId)
 
   position.save()
 
-  savePositionSnapshot(position!, txDetails)
+  savePositionSnapshot(position, txDetails)
 }
 
 export function handleDecreaseLiquidity(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.DecreaseLiquidity): void {
@@ -142,11 +130,11 @@ export function handleDecreaseLiquidity(txDetails: TxDetails, event: assembly.ed
   const address = Address.fromString(ADDRESS_ZERO);
   const tokenId = BigInt.fromString(event.token_id);
 
-  let position = getPosition({
-    address: address,
-    tokenId: tokenId,
-    txDetails: txDetails,
-  })
+  let position = getPosition(
+    address,
+    tokenId,
+    txDetails,
+  )
 
   // position was not able to be fetched
   if (position == null) {
@@ -158,8 +146,8 @@ export function handleDecreaseLiquidity(txDetails: TxDetails, event: assembly.ed
     return
   }
 
-  let token0 = Token.load(position.token0)
-  let token1 = Token.load(position.token1)
+  let token0 = Token.load(position.token0)!
+  let token1 = Token.load(position.token1)!
   let amount0 = convertTokenToDecimal(BigInt.fromString(event.amount0), token0.decimals)
   let amount1 = convertTokenToDecimal(BigInt.fromString(event.amount1), token1.decimals)
 
@@ -167,20 +155,20 @@ export function handleDecreaseLiquidity(txDetails: TxDetails, event: assembly.ed
   position.withdrawnToken0 = position.withdrawnToken0.plus(amount0)
   position.withdrawnToken1 = position.withdrawnToken1.plus(amount1)
 
-  position = updateFeeVars(position!, address, tokenId)
+  position = updateFeeVars(position, address, tokenId)
   position.save()
-  savePositionSnapshot(position!, txDetails)
+  savePositionSnapshot(position, txDetails)
 }
 
 export function handleCollect(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.Collect): void {
   const address = Address.fromString(ADDRESS_ZERO);
   const tokenId = BigInt.fromString(event.token_id);
 
-  let position = getPosition({
-    address: address,
-    tokenId: tokenId,
-    txDetails: txDetails,
-  })
+  let position = getPosition(
+    address,
+    tokenId,
+    txDetails,
+  )
 
   // position was not able to be fetched
   if (position == null) {
@@ -190,33 +178,33 @@ export function handleCollect(txDetails: TxDetails, event: assembly.edgeandnode.
     return
   }
 
-  let token0 = Token.load(position.token0)
+  let token0 = Token.load(position.token0)!
   let amount0 = convertTokenToDecimal(BigInt.fromString(event.amount0), token0.decimals)
   position.collectedFeesToken0 = position.collectedFeesToken0.plus(amount0)
   position.collectedFeesToken1 = position.collectedFeesToken1.plus(amount0)
 
-  position = updateFeeVars(position!, address, tokenId)
+  position = updateFeeVars(position, address, tokenId)
   position.save()
-  savePositionSnapshot(position!, txDetails)
+  savePositionSnapshot(position, txDetails)
 }
 
 export function handleTransfer(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.Transfer): void {
   const address = Address.fromString(ADDRESS_ZERO);
   const tokenId = BigInt.fromString(event.token_id);
 
-  let position = getPosition({
-    address: address,
-    tokenId: tokenId,
-    txDetails: txDetails,
-  })
+  let position = getPosition(
+    address,
+    tokenId,
+    txDetails,
+  )
 
   // position was not able to be fetched
   if (position == null) {
     return
   }
 
-  position.owner = Bytes.fromUint8Array(Uint8Array.from(event.to));
+  position.owner = Bytes.fromUint8Array(changetype<Uint8Array>(event.to));
   position.save()
 
-  savePositionSnapshot(position!, txDetails)
+  savePositionSnapshot(position, txDetails)
 }
