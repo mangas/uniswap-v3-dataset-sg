@@ -10,7 +10,7 @@ dataSources:
     source:
       dataset: QmSB1Vw3ZmNX7wwkbPoybK944fDKzLZ3KWLhjbeD9DwyVL
     mapping:
-      kind: substreams/graph-entities
+      kind: dataset
       apiVersion: 0.0.7
       file: ./src/mappings/fast.ts
       handler: handleBlock
