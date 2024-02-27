@@ -23,9 +23,7 @@ enum EventType{
 }
 
 message Events {
-  int32 block_number = 1;
-  string block_timestamp = 2;
-  repeated Event events = 3;
+  repeated Event events = 1;
 }
 
 // Every address is stored as hex string.
@@ -40,6 +38,11 @@ message Event {
   bytes tx_hash = 5;
   string tx_gas_used = 6; 
   bytes tx_gas_price = 7;
+  // This duplicates data (as opposed to adding this data to the head) but AssemblyScript does
+  // not support closures and so using the data is not super easy if it's in the header so I'll 
+  // leave it here.
+  int32 block_number = 8;
+  string block_timestamp = 9;
 }
 
 // Factory

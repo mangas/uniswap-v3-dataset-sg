@@ -770,21 +770,27 @@ export namespace edgeandnode {
         } // encode Events
       } // Events
 
+      // Every address is stored as hex string.
       export class Event {
         /**
          * Owner points to the address that originated this event
          *  The PoolCreated will set this to factory, which is what we can use
          *  to track different factories with compatible events.
          */
-        public owner: Array<u8> = new Array<u8>();
+        public owner: string = "";
         public type: u32;
         public event: google.protobuf.Any = new google.protobuf.Any();
-        public address: Array<u8> = new Array<u8>();
-        public block_number: i32;
-        public block_timestamp: string = "";
+        public address: string = "";
         public tx_hash: Array<u8> = new Array<u8>();
         public tx_gas_used: string = "";
         public tx_gas_price: Array<u8> = new Array<u8>();
+        /**
+         * This duplicates data (as opposed to adding this data to the head) but AssemblyScript does
+         *  not support closures and so using the data is not super easy if it's in the header so I'll
+         *  leave it here.
+         */
+        public block_number: i32;
+        public block_timestamp: string = "";
 
         // Decodes Event from an ArrayBuffer
         static decode(buf: ArrayBuffer): Event {
@@ -802,7 +808,7 @@ export namespace edgeandnode {
 
             switch (number) {
               case 1: {
-                obj.owner = decoder.bytes();
+                obj.owner = decoder.string();
                 break;
               }
               case 2: {
@@ -823,27 +829,27 @@ export namespace edgeandnode {
                 break;
               }
               case 4: {
-                obj.address = decoder.bytes();
+                obj.address = decoder.string();
                 break;
               }
               case 5: {
-                obj.block_number = decoder.int32();
-                break;
-              }
-              case 6: {
-                obj.block_timestamp = decoder.string();
-                break;
-              }
-              case 7: {
                 obj.tx_hash = decoder.bytes();
                 break;
               }
-              case 8: {
+              case 6: {
                 obj.tx_gas_used = decoder.string();
                 break;
               }
-              case 9: {
+              case 7: {
                 obj.tx_gas_price = decoder.bytes();
+                break;
+              }
+              case 8: {
+                obj.block_number = decoder.int32();
+                break;
+              }
+              case 9: {
+                obj.block_timestamp = decoder.string();
                 break;
               }
 
@@ -882,16 +888,6 @@ export namespace edgeandnode {
                 this.address.length
               : 0;
           size +=
-            this.block_number == 0
-              ? 0
-              : 1 + __proto.Sizer.int32(this.block_number);
-          size +=
-            this.block_timestamp.length > 0
-              ? 1 +
-                __proto.Sizer.varint64(this.block_timestamp.length) +
-                this.block_timestamp.length
-              : 0;
-          size +=
             this.tx_hash.length > 0
               ? 1 +
                 __proto.Sizer.varint64(this.tx_hash.length) +
@@ -908,6 +904,16 @@ export namespace edgeandnode {
               ? 1 +
                 __proto.Sizer.varint64(this.tx_gas_price.length) +
                 this.tx_gas_price.length
+              : 0;
+          size +=
+            this.block_number == 0
+              ? 0
+              : 1 + __proto.Sizer.int32(this.block_number);
+          size +=
+            this.block_timestamp.length > 0
+              ? 1 +
+                __proto.Sizer.varint64(this.block_timestamp.length) +
+                this.block_timestamp.length
               : 0;
 
           return size;
@@ -929,7 +935,7 @@ export namespace edgeandnode {
           if (this.owner.length > 0) {
             encoder.uint32(0xa);
             encoder.uint32(this.owner.length);
-            encoder.bytes(this.owner);
+            encoder.string(this.owner);
           }
           if (this.type != 0) {
             encoder.uint32(0x10);
@@ -951,31 +957,31 @@ export namespace edgeandnode {
           if (this.address.length > 0) {
             encoder.uint32(0x22);
             encoder.uint32(this.address.length);
-            encoder.bytes(this.address);
-          }
-          if (this.block_number != 0) {
-            encoder.uint32(0x28);
-            encoder.int32(this.block_number);
-          }
-          if (this.block_timestamp.length > 0) {
-            encoder.uint32(0x32);
-            encoder.uint32(this.block_timestamp.length);
-            encoder.string(this.block_timestamp);
+            encoder.string(this.address);
           }
           if (this.tx_hash.length > 0) {
-            encoder.uint32(0x3a);
+            encoder.uint32(0x2a);
             encoder.uint32(this.tx_hash.length);
             encoder.bytes(this.tx_hash);
           }
           if (this.tx_gas_used.length > 0) {
-            encoder.uint32(0x42);
+            encoder.uint32(0x32);
             encoder.uint32(this.tx_gas_used.length);
             encoder.string(this.tx_gas_used);
           }
           if (this.tx_gas_price.length > 0) {
-            encoder.uint32(0x4a);
+            encoder.uint32(0x3a);
             encoder.uint32(this.tx_gas_price.length);
             encoder.bytes(this.tx_gas_price);
+          }
+          if (this.block_number != 0) {
+            encoder.uint32(0x40);
+            encoder.int32(this.block_number);
+          }
+          if (this.block_timestamp.length > 0) {
+            encoder.uint32(0x4a);
+            encoder.uint32(this.block_timestamp.length);
+            encoder.string(this.block_timestamp);
           }
 
           return buf;
@@ -984,11 +990,11 @@ export namespace edgeandnode {
 
       // Factory
       export class PoolCreated {
-        public token0: Array<u8> = new Array<u8>();
-        public token1: Array<u8> = new Array<u8>();
+        public token0: string = "";
+        public token1: string = "";
         public fee: string = "";
         public tick_spacing: string = "";
-        public pool: Array<u8> = new Array<u8>();
+        public pool: string = "";
 
         // Decodes PoolCreated from an ArrayBuffer
         static decode(buf: ArrayBuffer): PoolCreated {
@@ -1005,24 +1011,24 @@ export namespace edgeandnode {
             const number = tag >>> 3;
 
             switch (number) {
+              case 1: {
+                obj.token0 = decoder.string();
+                break;
+              }
               case 2: {
-                obj.token0 = decoder.bytes();
+                obj.token1 = decoder.string();
                 break;
               }
               case 3: {
-                obj.token1 = decoder.bytes();
-                break;
-              }
-              case 4: {
                 obj.fee = decoder.string();
                 break;
               }
-              case 5: {
+              case 4: {
                 obj.tick_spacing = decoder.string();
                 break;
               }
-              case 1: {
-                obj.pool = decoder.bytes();
+              case 5: {
+                obj.pool = decoder.string();
                 break;
               }
 
@@ -1081,29 +1087,29 @@ export namespace edgeandnode {
           const buf = encoder.buf;
 
           if (this.token0.length > 0) {
-            encoder.uint32(0x12);
+            encoder.uint32(0xa);
             encoder.uint32(this.token0.length);
-            encoder.bytes(this.token0);
+            encoder.string(this.token0);
           }
           if (this.token1.length > 0) {
-            encoder.uint32(0x1a);
+            encoder.uint32(0x12);
             encoder.uint32(this.token1.length);
-            encoder.bytes(this.token1);
+            encoder.string(this.token1);
           }
           if (this.fee.length > 0) {
-            encoder.uint32(0x22);
+            encoder.uint32(0x1a);
             encoder.uint32(this.fee.length);
             encoder.string(this.fee);
           }
           if (this.tick_spacing.length > 0) {
-            encoder.uint32(0x2a);
+            encoder.uint32(0x22);
             encoder.uint32(this.tick_spacing.length);
             encoder.string(this.tick_spacing);
           }
           if (this.pool.length > 0) {
-            encoder.uint32(0xa);
+            encoder.uint32(0x2a);
             encoder.uint32(this.pool.length);
-            encoder.bytes(this.pool);
+            encoder.string(this.pool);
           }
 
           return buf;
@@ -1343,7 +1349,7 @@ export namespace edgeandnode {
 
       export class Collect {
         public token_id: string = "";
-        public recipient: Array<u8> = new Array<u8>();
+        public recipient: string = "";
         public amount0: string = "";
         public amount1: string = "";
 
@@ -1367,7 +1373,7 @@ export namespace edgeandnode {
                 break;
               }
               case 2: {
-                obj.recipient = decoder.bytes();
+                obj.recipient = decoder.string();
                 break;
               }
               case 3: {
@@ -1439,7 +1445,7 @@ export namespace edgeandnode {
           if (this.recipient.length > 0) {
             encoder.uint32(0x12);
             encoder.uint32(this.recipient.length);
-            encoder.bytes(this.recipient);
+            encoder.string(this.recipient);
           }
           if (this.amount0.length > 0) {
             encoder.uint32(0x1a);
@@ -1457,8 +1463,8 @@ export namespace edgeandnode {
       } // Collect
 
       export class Transfer {
-        public from: Array<u8> = new Array<u8>();
-        public to: Array<u8> = new Array<u8>();
+        public from: string = "";
+        public to: string = "";
         public token_id: string = "";
 
         // Decodes Transfer from an ArrayBuffer
@@ -1477,11 +1483,11 @@ export namespace edgeandnode {
 
             switch (number) {
               case 1: {
-                obj.from = decoder.bytes();
+                obj.from = decoder.string();
                 break;
               }
               case 2: {
-                obj.to = decoder.bytes();
+                obj.to = decoder.string();
                 break;
               }
               case 3: {
@@ -1534,12 +1540,12 @@ export namespace edgeandnode {
           if (this.from.length > 0) {
             encoder.uint32(0xa);
             encoder.uint32(this.from.length);
-            encoder.bytes(this.from);
+            encoder.string(this.from);
           }
           if (this.to.length > 0) {
             encoder.uint32(0x12);
             encoder.uint32(this.to.length);
-            encoder.bytes(this.to);
+            encoder.string(this.to);
           }
           if (this.token_id.length > 0) {
             encoder.uint32(0x1a);
@@ -1634,15 +1640,15 @@ export namespace edgeandnode {
       } // Initialize
 
       export class Swap {
-        public sender: Array<u8> = new Array<u8>();
-        public recipient: Array<u8> = new Array<u8>();
+        public sender: string = "";
+        public recipient: string = "";
         public amount0: string = "";
         public amount1: string = "";
         public sqrt_price_x96: string = "";
         public liquidity: string = "";
         public tick: string = "";
         public log_index: i32;
-        public transaction_from: Array<u8> = new Array<u8>();
+        public transaction_from: string = "";
 
         // Decodes Swap from an ArrayBuffer
         static decode(buf: ArrayBuffer): Swap {
@@ -1660,11 +1666,11 @@ export namespace edgeandnode {
 
             switch (number) {
               case 1: {
-                obj.sender = decoder.bytes();
+                obj.sender = decoder.string();
                 break;
               }
               case 2: {
-                obj.recipient = decoder.bytes();
+                obj.recipient = decoder.string();
                 break;
               }
               case 3: {
@@ -1692,7 +1698,7 @@ export namespace edgeandnode {
                 break;
               }
               case 9: {
-                obj.transaction_from = decoder.bytes();
+                obj.transaction_from = decoder.string();
                 break;
               }
 
@@ -1775,12 +1781,12 @@ export namespace edgeandnode {
           if (this.sender.length > 0) {
             encoder.uint32(0xa);
             encoder.uint32(this.sender.length);
-            encoder.bytes(this.sender);
+            encoder.string(this.sender);
           }
           if (this.recipient.length > 0) {
             encoder.uint32(0x12);
             encoder.uint32(this.recipient.length);
-            encoder.bytes(this.recipient);
+            encoder.string(this.recipient);
           }
           if (this.amount0.length > 0) {
             encoder.uint32(0x1a);
@@ -1814,7 +1820,7 @@ export namespace edgeandnode {
           if (this.transaction_from.length > 0) {
             encoder.uint32(0x4a);
             encoder.uint32(this.transaction_from.length);
-            encoder.bytes(this.transaction_from);
+            encoder.string(this.transaction_from);
           }
 
           return buf;
@@ -1822,15 +1828,15 @@ export namespace edgeandnode {
       } // Swap
 
       export class Mint {
-        public sender: Array<u8> = new Array<u8>();
-        public owner: Array<u8> = new Array<u8>();
+        public sender: string = "";
+        public owner: string = "";
         public tick_lower: string = "";
         public tick_upper: string = "";
         public amount: string = "";
         public amount0: string = "";
         public amount1: string = "";
         public log_index: i32;
-        public transaction_from: Array<u8> = new Array<u8>();
+        public transaction_from: string = "";
 
         // Decodes Mint from an ArrayBuffer
         static decode(buf: ArrayBuffer): Mint {
@@ -1848,11 +1854,11 @@ export namespace edgeandnode {
 
             switch (number) {
               case 1: {
-                obj.sender = decoder.bytes();
+                obj.sender = decoder.string();
                 break;
               }
               case 2: {
-                obj.owner = decoder.bytes();
+                obj.owner = decoder.string();
                 break;
               }
               case 3: {
@@ -1880,7 +1886,7 @@ export namespace edgeandnode {
                 break;
               }
               case 9: {
-                obj.transaction_from = decoder.bytes();
+                obj.transaction_from = decoder.string();
                 break;
               }
 
@@ -1965,12 +1971,12 @@ export namespace edgeandnode {
           if (this.sender.length > 0) {
             encoder.uint32(0xa);
             encoder.uint32(this.sender.length);
-            encoder.bytes(this.sender);
+            encoder.string(this.sender);
           }
           if (this.owner.length > 0) {
             encoder.uint32(0x12);
             encoder.uint32(this.owner.length);
-            encoder.bytes(this.owner);
+            encoder.string(this.owner);
           }
           if (this.tick_lower.length > 0) {
             encoder.uint32(0x1a);
@@ -2004,7 +2010,7 @@ export namespace edgeandnode {
           if (this.transaction_from.length > 0) {
             encoder.uint32(0x4a);
             encoder.uint32(this.transaction_from.length);
-            encoder.bytes(this.transaction_from);
+            encoder.string(this.transaction_from);
           }
 
           return buf;
@@ -2012,14 +2018,14 @@ export namespace edgeandnode {
       } // Mint
 
       export class Burn {
-        public owner: Array<u8> = new Array<u8>();
+        public owner: string = "";
         public tick_lower: string = "";
         public tick_upper: string = "";
         public amount: string = "";
         public amount0: string = "";
         public amount1: string = "";
         public log_index: i32;
-        public transaction_from: Array<u8> = new Array<u8>();
+        public transaction_from: string = "";
 
         // Decodes Burn from an ArrayBuffer
         static decode(buf: ArrayBuffer): Burn {
@@ -2037,7 +2043,7 @@ export namespace edgeandnode {
 
             switch (number) {
               case 1: {
-                obj.owner = decoder.bytes();
+                obj.owner = decoder.string();
                 break;
               }
               case 2: {
@@ -2065,7 +2071,7 @@ export namespace edgeandnode {
                 break;
               }
               case 8: {
-                obj.transaction_from = decoder.bytes();
+                obj.transaction_from = decoder.string();
                 break;
               }
 
@@ -2144,7 +2150,7 @@ export namespace edgeandnode {
           if (this.owner.length > 0) {
             encoder.uint32(0xa);
             encoder.uint32(this.owner.length);
-            encoder.bytes(this.owner);
+            encoder.string(this.owner);
           }
           if (this.tick_lower.length > 0) {
             encoder.uint32(0x12);
@@ -2178,7 +2184,7 @@ export namespace edgeandnode {
           if (this.transaction_from.length > 0) {
             encoder.uint32(0x42);
             encoder.uint32(this.transaction_from.length);
-            encoder.bytes(this.transaction_from);
+            encoder.string(this.transaction_from);
           }
 
           return buf;
@@ -2186,8 +2192,8 @@ export namespace edgeandnode {
       } // Burn
 
       export class Flash {
-        public sender: Array<u8> = new Array<u8>();
-        public recipient: Array<u8> = new Array<u8>();
+        public sender: string = "";
+        public recipient: string = "";
         public amount0: string = "";
         public amount1: string = "";
         public paid0: string = "";
@@ -2209,11 +2215,11 @@ export namespace edgeandnode {
 
             switch (number) {
               case 1: {
-                obj.sender = decoder.bytes();
+                obj.sender = decoder.string();
                 break;
               }
               case 2: {
-                obj.recipient = decoder.bytes();
+                obj.recipient = decoder.string();
                 break;
               }
               case 3: {
@@ -2300,12 +2306,12 @@ export namespace edgeandnode {
           if (this.sender.length > 0) {
             encoder.uint32(0xa);
             encoder.uint32(this.sender.length);
-            encoder.bytes(this.sender);
+            encoder.string(this.sender);
           }
           if (this.recipient.length > 0) {
             encoder.uint32(0x12);
             encoder.uint32(this.recipient.length);
-            encoder.bytes(this.recipient);
+            encoder.string(this.recipient);
           }
           if (this.amount0.length > 0) {
             encoder.uint32(0x1a);
@@ -2432,21 +2438,27 @@ export namespace edgeandnode {
       } // encode Events
     } // Events
 
+    // Every address is stored as hex string.
     export class Event {
       /**
        * Owner points to the address that originated this event
        *  The PoolCreated will set this to factory, which is what we can use
        *  to track different factories with compatible events.
        */
-      public owner: Array<u8> = new Array<u8>();
+      public owner: string = "";
       public type: u32;
       public event: google.protobuf.Any = new google.protobuf.Any();
-      public address: Array<u8> = new Array<u8>();
-      public block_number: i32;
-      public block_timestamp: string = "";
+      public address: string = "";
       public tx_hash: Array<u8> = new Array<u8>();
       public tx_gas_used: string = "";
       public tx_gas_price: Array<u8> = new Array<u8>();
+      /**
+       * This duplicates data (as opposed to adding this data to the head) but AssemblyScript does
+       *  not support closures and so using the data is not super easy if it's in the header so I'll
+       *  leave it here.
+       */
+      public block_number: i32;
+      public block_timestamp: string = "";
 
       // Decodes Event from an ArrayBuffer
       static decode(buf: ArrayBuffer): Event {
@@ -2464,7 +2476,7 @@ export namespace edgeandnode {
 
           switch (number) {
             case 1: {
-              obj.owner = decoder.bytes();
+              obj.owner = decoder.string();
               break;
             }
             case 2: {
@@ -2485,27 +2497,27 @@ export namespace edgeandnode {
               break;
             }
             case 4: {
-              obj.address = decoder.bytes();
+              obj.address = decoder.string();
               break;
             }
             case 5: {
-              obj.block_number = decoder.int32();
-              break;
-            }
-            case 6: {
-              obj.block_timestamp = decoder.string();
-              break;
-            }
-            case 7: {
               obj.tx_hash = decoder.bytes();
               break;
             }
-            case 8: {
+            case 6: {
               obj.tx_gas_used = decoder.string();
               break;
             }
-            case 9: {
+            case 7: {
               obj.tx_gas_price = decoder.bytes();
+              break;
+            }
+            case 8: {
+              obj.block_number = decoder.int32();
+              break;
+            }
+            case 9: {
+              obj.block_timestamp = decoder.string();
               break;
             }
 
@@ -2542,16 +2554,6 @@ export namespace edgeandnode {
               this.address.length
             : 0;
         size +=
-          this.block_number == 0
-            ? 0
-            : 1 + __proto.Sizer.int32(this.block_number);
-        size +=
-          this.block_timestamp.length > 0
-            ? 1 +
-              __proto.Sizer.varint64(this.block_timestamp.length) +
-              this.block_timestamp.length
-            : 0;
-        size +=
           this.tx_hash.length > 0
             ? 1 +
               __proto.Sizer.varint64(this.tx_hash.length) +
@@ -2568,6 +2570,16 @@ export namespace edgeandnode {
             ? 1 +
               __proto.Sizer.varint64(this.tx_gas_price.length) +
               this.tx_gas_price.length
+            : 0;
+        size +=
+          this.block_number == 0
+            ? 0
+            : 1 + __proto.Sizer.int32(this.block_number);
+        size +=
+          this.block_timestamp.length > 0
+            ? 1 +
+              __proto.Sizer.varint64(this.block_timestamp.length) +
+              this.block_timestamp.length
             : 0;
 
         return size;
@@ -2589,7 +2601,7 @@ export namespace edgeandnode {
         if (this.owner.length > 0) {
           encoder.uint32(0xa);
           encoder.uint32(this.owner.length);
-          encoder.bytes(this.owner);
+          encoder.string(this.owner);
         }
         if (this.type != 0) {
           encoder.uint32(0x10);
@@ -2611,31 +2623,31 @@ export namespace edgeandnode {
         if (this.address.length > 0) {
           encoder.uint32(0x22);
           encoder.uint32(this.address.length);
-          encoder.bytes(this.address);
-        }
-        if (this.block_number != 0) {
-          encoder.uint32(0x28);
-          encoder.int32(this.block_number);
-        }
-        if (this.block_timestamp.length > 0) {
-          encoder.uint32(0x32);
-          encoder.uint32(this.block_timestamp.length);
-          encoder.string(this.block_timestamp);
+          encoder.string(this.address);
         }
         if (this.tx_hash.length > 0) {
-          encoder.uint32(0x3a);
+          encoder.uint32(0x2a);
           encoder.uint32(this.tx_hash.length);
           encoder.bytes(this.tx_hash);
         }
         if (this.tx_gas_used.length > 0) {
-          encoder.uint32(0x42);
+          encoder.uint32(0x32);
           encoder.uint32(this.tx_gas_used.length);
           encoder.string(this.tx_gas_used);
         }
         if (this.tx_gas_price.length > 0) {
-          encoder.uint32(0x4a);
+          encoder.uint32(0x3a);
           encoder.uint32(this.tx_gas_price.length);
           encoder.bytes(this.tx_gas_price);
+        }
+        if (this.block_number != 0) {
+          encoder.uint32(0x40);
+          encoder.int32(this.block_number);
+        }
+        if (this.block_timestamp.length > 0) {
+          encoder.uint32(0x4a);
+          encoder.uint32(this.block_timestamp.length);
+          encoder.string(this.block_timestamp);
         }
 
         return buf;
@@ -2644,11 +2656,11 @@ export namespace edgeandnode {
 
     // Factory
     export class PoolCreated {
-      public token0: Array<u8> = new Array<u8>();
-      public token1: Array<u8> = new Array<u8>();
+      public token0: string = "";
+      public token1: string = "";
       public fee: string = "";
       public tick_spacing: string = "";
-      public pool: Array<u8> = new Array<u8>();
+      public pool: string = "";
 
       // Decodes PoolCreated from an ArrayBuffer
       static decode(buf: ArrayBuffer): PoolCreated {
@@ -2665,24 +2677,24 @@ export namespace edgeandnode {
           const number = tag >>> 3;
 
           switch (number) {
+            case 1: {
+              obj.token0 = decoder.string();
+              break;
+            }
             case 2: {
-              obj.token0 = decoder.bytes();
+              obj.token1 = decoder.string();
               break;
             }
             case 3: {
-              obj.token1 = decoder.bytes();
-              break;
-            }
-            case 4: {
               obj.fee = decoder.string();
               break;
             }
-            case 5: {
+            case 4: {
               obj.tick_spacing = decoder.string();
               break;
             }
-            case 1: {
-              obj.pool = decoder.bytes();
+            case 5: {
+              obj.pool = decoder.string();
               break;
             }
 
@@ -2741,29 +2753,29 @@ export namespace edgeandnode {
         const buf = encoder.buf;
 
         if (this.token0.length > 0) {
-          encoder.uint32(0x12);
+          encoder.uint32(0xa);
           encoder.uint32(this.token0.length);
-          encoder.bytes(this.token0);
+          encoder.string(this.token0);
         }
         if (this.token1.length > 0) {
-          encoder.uint32(0x1a);
+          encoder.uint32(0x12);
           encoder.uint32(this.token1.length);
-          encoder.bytes(this.token1);
+          encoder.string(this.token1);
         }
         if (this.fee.length > 0) {
-          encoder.uint32(0x22);
+          encoder.uint32(0x1a);
           encoder.uint32(this.fee.length);
           encoder.string(this.fee);
         }
         if (this.tick_spacing.length > 0) {
-          encoder.uint32(0x2a);
+          encoder.uint32(0x22);
           encoder.uint32(this.tick_spacing.length);
           encoder.string(this.tick_spacing);
         }
         if (this.pool.length > 0) {
-          encoder.uint32(0xa);
+          encoder.uint32(0x2a);
           encoder.uint32(this.pool.length);
-          encoder.bytes(this.pool);
+          encoder.string(this.pool);
         }
 
         return buf;
@@ -3003,7 +3015,7 @@ export namespace edgeandnode {
 
     export class Collect {
       public token_id: string = "";
-      public recipient: Array<u8> = new Array<u8>();
+      public recipient: string = "";
       public amount0: string = "";
       public amount1: string = "";
 
@@ -3027,7 +3039,7 @@ export namespace edgeandnode {
               break;
             }
             case 2: {
-              obj.recipient = decoder.bytes();
+              obj.recipient = decoder.string();
               break;
             }
             case 3: {
@@ -3099,7 +3111,7 @@ export namespace edgeandnode {
         if (this.recipient.length > 0) {
           encoder.uint32(0x12);
           encoder.uint32(this.recipient.length);
-          encoder.bytes(this.recipient);
+          encoder.string(this.recipient);
         }
         if (this.amount0.length > 0) {
           encoder.uint32(0x1a);
@@ -3117,8 +3129,8 @@ export namespace edgeandnode {
     } // Collect
 
     export class Transfer {
-      public from: Array<u8> = new Array<u8>();
-      public to: Array<u8> = new Array<u8>();
+      public from: string = "";
+      public to: string = "";
       public token_id: string = "";
 
       // Decodes Transfer from an ArrayBuffer
@@ -3137,11 +3149,11 @@ export namespace edgeandnode {
 
           switch (number) {
             case 1: {
-              obj.from = decoder.bytes();
+              obj.from = decoder.string();
               break;
             }
             case 2: {
-              obj.to = decoder.bytes();
+              obj.to = decoder.string();
               break;
             }
             case 3: {
@@ -3194,12 +3206,12 @@ export namespace edgeandnode {
         if (this.from.length > 0) {
           encoder.uint32(0xa);
           encoder.uint32(this.from.length);
-          encoder.bytes(this.from);
+          encoder.string(this.from);
         }
         if (this.to.length > 0) {
           encoder.uint32(0x12);
           encoder.uint32(this.to.length);
-          encoder.bytes(this.to);
+          encoder.string(this.to);
         }
         if (this.token_id.length > 0) {
           encoder.uint32(0x1a);
@@ -3294,15 +3306,15 @@ export namespace edgeandnode {
     } // Initialize
 
     export class Swap {
-      public sender: Array<u8> = new Array<u8>();
-      public recipient: Array<u8> = new Array<u8>();
+      public sender: string = "";
+      public recipient: string = "";
       public amount0: string = "";
       public amount1: string = "";
       public sqrt_price_x96: string = "";
       public liquidity: string = "";
       public tick: string = "";
       public log_index: i32;
-      public transaction_from: Array<u8> = new Array<u8>();
+      public transaction_from: string = "";
 
       // Decodes Swap from an ArrayBuffer
       static decode(buf: ArrayBuffer): Swap {
@@ -3320,11 +3332,11 @@ export namespace edgeandnode {
 
           switch (number) {
             case 1: {
-              obj.sender = decoder.bytes();
+              obj.sender = decoder.string();
               break;
             }
             case 2: {
-              obj.recipient = decoder.bytes();
+              obj.recipient = decoder.string();
               break;
             }
             case 3: {
@@ -3352,7 +3364,7 @@ export namespace edgeandnode {
               break;
             }
             case 9: {
-              obj.transaction_from = decoder.bytes();
+              obj.transaction_from = decoder.string();
               break;
             }
 
@@ -3435,12 +3447,12 @@ export namespace edgeandnode {
         if (this.sender.length > 0) {
           encoder.uint32(0xa);
           encoder.uint32(this.sender.length);
-          encoder.bytes(this.sender);
+          encoder.string(this.sender);
         }
         if (this.recipient.length > 0) {
           encoder.uint32(0x12);
           encoder.uint32(this.recipient.length);
-          encoder.bytes(this.recipient);
+          encoder.string(this.recipient);
         }
         if (this.amount0.length > 0) {
           encoder.uint32(0x1a);
@@ -3474,7 +3486,7 @@ export namespace edgeandnode {
         if (this.transaction_from.length > 0) {
           encoder.uint32(0x4a);
           encoder.uint32(this.transaction_from.length);
-          encoder.bytes(this.transaction_from);
+          encoder.string(this.transaction_from);
         }
 
         return buf;
@@ -3482,15 +3494,15 @@ export namespace edgeandnode {
     } // Swap
 
     export class Mint {
-      public sender: Array<u8> = new Array<u8>();
-      public owner: Array<u8> = new Array<u8>();
+      public sender: string = "";
+      public owner: string = "";
       public tick_lower: string = "";
       public tick_upper: string = "";
       public amount: string = "";
       public amount0: string = "";
       public amount1: string = "";
       public log_index: i32;
-      public transaction_from: Array<u8> = new Array<u8>();
+      public transaction_from: string = "";
 
       // Decodes Mint from an ArrayBuffer
       static decode(buf: ArrayBuffer): Mint {
@@ -3508,11 +3520,11 @@ export namespace edgeandnode {
 
           switch (number) {
             case 1: {
-              obj.sender = decoder.bytes();
+              obj.sender = decoder.string();
               break;
             }
             case 2: {
-              obj.owner = decoder.bytes();
+              obj.owner = decoder.string();
               break;
             }
             case 3: {
@@ -3540,7 +3552,7 @@ export namespace edgeandnode {
               break;
             }
             case 9: {
-              obj.transaction_from = decoder.bytes();
+              obj.transaction_from = decoder.string();
               break;
             }
 
@@ -3623,12 +3635,12 @@ export namespace edgeandnode {
         if (this.sender.length > 0) {
           encoder.uint32(0xa);
           encoder.uint32(this.sender.length);
-          encoder.bytes(this.sender);
+          encoder.string(this.sender);
         }
         if (this.owner.length > 0) {
           encoder.uint32(0x12);
           encoder.uint32(this.owner.length);
-          encoder.bytes(this.owner);
+          encoder.string(this.owner);
         }
         if (this.tick_lower.length > 0) {
           encoder.uint32(0x1a);
@@ -3662,7 +3674,7 @@ export namespace edgeandnode {
         if (this.transaction_from.length > 0) {
           encoder.uint32(0x4a);
           encoder.uint32(this.transaction_from.length);
-          encoder.bytes(this.transaction_from);
+          encoder.string(this.transaction_from);
         }
 
         return buf;
@@ -3670,14 +3682,14 @@ export namespace edgeandnode {
     } // Mint
 
     export class Burn {
-      public owner: Array<u8> = new Array<u8>();
+      public owner: string = "";
       public tick_lower: string = "";
       public tick_upper: string = "";
       public amount: string = "";
       public amount0: string = "";
       public amount1: string = "";
       public log_index: i32;
-      public transaction_from: Array<u8> = new Array<u8>();
+      public transaction_from: string = "";
 
       // Decodes Burn from an ArrayBuffer
       static decode(buf: ArrayBuffer): Burn {
@@ -3695,7 +3707,7 @@ export namespace edgeandnode {
 
           switch (number) {
             case 1: {
-              obj.owner = decoder.bytes();
+              obj.owner = decoder.string();
               break;
             }
             case 2: {
@@ -3723,7 +3735,7 @@ export namespace edgeandnode {
               break;
             }
             case 8: {
-              obj.transaction_from = decoder.bytes();
+              obj.transaction_from = decoder.string();
               break;
             }
 
@@ -3800,7 +3812,7 @@ export namespace edgeandnode {
         if (this.owner.length > 0) {
           encoder.uint32(0xa);
           encoder.uint32(this.owner.length);
-          encoder.bytes(this.owner);
+          encoder.string(this.owner);
         }
         if (this.tick_lower.length > 0) {
           encoder.uint32(0x12);
@@ -3834,7 +3846,7 @@ export namespace edgeandnode {
         if (this.transaction_from.length > 0) {
           encoder.uint32(0x42);
           encoder.uint32(this.transaction_from.length);
-          encoder.bytes(this.transaction_from);
+          encoder.string(this.transaction_from);
         }
 
         return buf;
@@ -3842,8 +3854,8 @@ export namespace edgeandnode {
     } // Burn
 
     export class Flash {
-      public sender: Array<u8> = new Array<u8>();
-      public recipient: Array<u8> = new Array<u8>();
+      public sender: string = "";
+      public recipient: string = "";
       public amount0: string = "";
       public amount1: string = "";
       public paid0: string = "";
@@ -3865,11 +3877,11 @@ export namespace edgeandnode {
 
           switch (number) {
             case 1: {
-              obj.sender = decoder.bytes();
+              obj.sender = decoder.string();
               break;
             }
             case 2: {
-              obj.recipient = decoder.bytes();
+              obj.recipient = decoder.string();
               break;
             }
             case 3: {
@@ -3952,12 +3964,12 @@ export namespace edgeandnode {
         if (this.sender.length > 0) {
           encoder.uint32(0xa);
           encoder.uint32(this.sender.length);
-          encoder.bytes(this.sender);
+          encoder.string(this.sender);
         }
         if (this.recipient.length > 0) {
           encoder.uint32(0x12);
           encoder.uint32(this.recipient.length);
-          encoder.bytes(this.recipient);
+          encoder.string(this.recipient);
         }
         if (this.amount0.length > 0) {
           encoder.uint32(0x1a);

@@ -2,7 +2,7 @@ import * as assembly from "../pb/assembly"
 import { handlePoolCreated } from './factory';
 import { handleIncreaseLiquidity, handleDecreaseLiquidity, handleCollect, handleTransfer } from './position-manager';
 import { handleInitialize, handleSwap, handleMint, handleBurn, handleFlash } from './core';
-import { Address, BigInt, Bytes, ByteArray, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ByteArray } from "@graphprotocol/graph-ts";
 
 
 export class TxDetails {
@@ -36,9 +36,9 @@ export class TxDetails {
   }
 };
 
-function txDetailsFromHeader(header: assembly.edgeandnode.uniswap.v1.Event): TxDetails {
+export function txDetailsFromHeader(header: assembly.edgeandnode.uniswap.v1.Event): TxDetails {
   return new TxDetails(
-    Address.fromBytes(changetype<Bytes>(header.address)),
+    Address.fromString(header.address),
     BigInt.fromI32(header.block_number),
     BigInt.fromString(header.block_timestamp),
     Bytes.fromByteArray(changetype<ByteArray>(header.tx_hash)),
@@ -51,8 +51,10 @@ function txDetailsFromHeader(header: assembly.edgeandnode.uniswap.v1.Event): TxD
 export function handleBlock(blockBytes: Uint8Array): void {
   const decoded = assembly.edgeandnode.uniswap.v1.Events.decode(blockBytes.buffer);
 
+
   decoded.events.forEach((event: assembly.edgeandnode.uniswap.v1.Event) => {
     const txDetails = txDetailsFromHeader(event);
+
     switch (event.type) {
       case 0: {
         const e = assembly.edgeandnode.uniswap.v1.PoolCreated.decode(changetype<Uint8Array>(event.event.value).buffer);

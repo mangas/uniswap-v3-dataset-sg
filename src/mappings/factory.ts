@@ -15,9 +15,9 @@ export function handlePoolCreated(txDetails: TxDetails, event: assembly.edgeandn
     return;
   }
 
-  const poolAddress: Address = Address.fromBytes(changetype<Bytes>(event.pool));
-  const token0Address: Address = Address.fromBytes(changetype<Bytes>(event.token0));
-  const token1Address: Address = Address.fromBytes(changetype<Bytes>(event.token1));
+  const poolAddress: Address = Address.fromString(event.pool);
+  const token0Address: Address = Address.fromString(event.token0);
+  const token1Address: Address = Address.fromString(event.token1);
   // temp fix
   if (poolAddress == Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')) {
     return

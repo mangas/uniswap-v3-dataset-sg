@@ -117,9 +117,9 @@ export function handleMint(txDetails: TxDetails, event: assembly.edgeandnode.uni
   mint.pool = pool.id
   mint.token0 = pool.token0
   mint.token1 = pool.token1
-  mint.owner = Bytes.fromUint8Array(changetype<Uint8Array>(event.owner));
-  mint.sender = Bytes.fromUint8Array(changetype<Uint8Array>(event.sender));
-  mint.origin = Bytes.fromUint8Array(changetype<Uint8Array>(event.transaction_from));
+  mint.owner = Bytes.fromHexString(event.owner);
+  mint.sender = Bytes.fromHexString(event.sender);
+  mint.origin = Bytes.fromHexString(event.transaction_from);
   mint.amount = BigInt.fromString(event.amount)
   mint.amount0 = amount0
   mint.amount1 = amount1
