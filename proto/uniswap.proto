@@ -23,32 +23,32 @@ enum EventType{
 }
 
 message Events {
-  repeated Event events = 1;
+  int32 block_number = 1;
+  string block_timestamp = 2;
+  repeated Event events = 3;
 }
 
+// Every address is stored as hex string.
 message Event {
   // Owner points to the address that originated this event
   // The PoolCreated will set this to factory, which is what we can use
   // to track different factories with compatible events. 
-  bytes owner = 1;
+  string owner = 1;
   EventType type = 2;
   google.protobuf.Any event = 3;
-
-  bytes address = 4;
-  int32 block_number = 5;
-  string block_timestamp = 6;
-  bytes tx_hash = 7;
-  string tx_gas_used = 8; 
-  bytes tx_gas_price = 9;
+  string address= 4;
+  bytes tx_hash = 5;
+  string tx_gas_used = 6; 
+  bytes tx_gas_price = 7;
 }
 
 // Factory
 message PoolCreated {
-  bytes  token0 = 2;
-  bytes  token1 = 3;
-  string fee = 4;
-  string tick_spacing = 5;
-  bytes  pool = 1;
+  string  token0 = 1;
+  string  token1 = 2;
+  string fee = 3;
+  string tick_spacing = 4;
+  string pool = 5;
 }
 
 // Position Manager
@@ -68,13 +68,13 @@ message DecreaseLiquidity {
 
 message Collect {
   string token_id = 1;
-  bytes recipient = 2;
+  string recipient = 2;
   string amount0 = 3;
   string amount1 = 4;
 }
 message Transfer {
-  bytes from = 1;
-  bytes to = 2;
+  string from = 1;
+  string to = 2;
   string token_id = 3;
 }
 
@@ -84,40 +84,40 @@ message Initialize {
   string tick = 2;
 }
 message Swap {
-  bytes  sender = 1;
-  bytes  recipient = 2;
+  string sender = 1;
+  string recipient = 2;
   string amount0 = 3;
   string amount1 = 4;
   string sqrt_price_x96 = 5;
   string liquidity = 6;
   string tick = 7;
   int32  log_index = 8;
-  bytes transaction_from = 9;
+  string transaction_from = 9;
 }
 message Mint {
-  bytes  sender = 1;
-  bytes  owner = 2;
+  string sender = 1;
+  string owner = 2;
   string tick_lower = 3;
   string tick_upper = 4;
   string amount = 5;
   string amount0 = 6;
   string amount1 = 7;
   int32  log_index = 8;
-  bytes transaction_from = 9;
+  string transaction_from = 9;
 }
 message Burn {
-  bytes  owner = 1;
+  string owner = 1;
   string tick_lower = 2;
   string tick_upper = 3;
   string amount = 4;
   string amount0 = 5;
   string amount1 = 6;
   int32  log_index = 7;
-  bytes transaction_from = 8;
+  string transaction_from = 8;
 }
 message Flash {
-  bytes  sender = 1;
-  bytes  recipient = 2;
+  string sender = 1;
+  string recipient = 2;
   string amount0 = 3;
   string amount1 = 4;
   string paid0 = 5;

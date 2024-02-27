@@ -2,7 +2,7 @@ import * as assembly from "../pb/assembly"
 import { handlePoolCreated } from './factory';
 import { handleIncreaseLiquidity, handleDecreaseLiquidity, handleCollect, handleTransfer } from './position-manager';
 import { handleInitialize, handleSwap, handleMint, handleBurn, handleFlash } from './core';
-import { Address, BigInt, Bytes, ByteArray } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ByteArray, log } from "@graphprotocol/graph-ts";
 
 
 export class TxDetails {
