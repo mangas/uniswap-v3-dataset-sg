@@ -791,6 +791,30 @@ export namespace edgeandnode {
          */
         public block_number: i32;
         public block_timestamp: string = "";
+        public poolcreated: PoolCreated | null;
+        public increaseliquidity: IncreaseLiquidity | null;
+        public decreaseliquidity: DecreaseLiquidity | null;
+        public collect: Collect | null;
+        public transfer: Transfer | null;
+        public initialize: Initialize | null;
+        public swap: Swap | null;
+        public mint: Mint | null;
+        public burn: Burn | null;
+        public flash: Flash | null;
+
+        public __event2: string = "";
+        public __event2_index: u8 = 0;
+
+        static readonly EVENT2_POOLCREATED_INDEX: u8 = 10;
+        static readonly EVENT2_INCREASELIQUIDITY_INDEX: u8 = 11;
+        static readonly EVENT2_DECREASELIQUIDITY_INDEX: u8 = 12;
+        static readonly EVENT2_COLLECT_INDEX: u8 = 13;
+        static readonly EVENT2_TRANSFER_INDEX: u8 = 14;
+        static readonly EVENT2_INITIALIZE_INDEX: u8 = 15;
+        static readonly EVENT2_SWAP_INDEX: u8 = 16;
+        static readonly EVENT2_MINT_INDEX: u8 = 17;
+        static readonly EVENT2_BURN_INDEX: u8 = 18;
+        static readonly EVENT2_FLASH_INDEX: u8 = 19;
 
         // Decodes Event from an ArrayBuffer
         static decode(buf: ArrayBuffer): Event {
@@ -850,6 +874,156 @@ export namespace edgeandnode {
               }
               case 9: {
                 obj.block_timestamp = decoder.string();
+                break;
+              }
+              case 10: {
+                const length = decoder.uint32();
+                obj.poolcreated = PoolCreated.decodeDataView(
+                  new DataView(
+                    decoder.view.buffer,
+                    decoder.pos + decoder.view.byteOffset,
+                    length
+                  )
+                );
+                decoder.skip(length);
+
+                obj.__event2 = "poolcreated";
+                obj.__event2_index = 10;
+                break;
+              }
+              case 11: {
+                const length = decoder.uint32();
+                obj.increaseliquidity = IncreaseLiquidity.decodeDataView(
+                  new DataView(
+                    decoder.view.buffer,
+                    decoder.pos + decoder.view.byteOffset,
+                    length
+                  )
+                );
+                decoder.skip(length);
+
+                obj.__event2 = "increaseliquidity";
+                obj.__event2_index = 11;
+                break;
+              }
+              case 12: {
+                const length = decoder.uint32();
+                obj.decreaseliquidity = DecreaseLiquidity.decodeDataView(
+                  new DataView(
+                    decoder.view.buffer,
+                    decoder.pos + decoder.view.byteOffset,
+                    length
+                  )
+                );
+                decoder.skip(length);
+
+                obj.__event2 = "decreaseliquidity";
+                obj.__event2_index = 12;
+                break;
+              }
+              case 13: {
+                const length = decoder.uint32();
+                obj.collect = Collect.decodeDataView(
+                  new DataView(
+                    decoder.view.buffer,
+                    decoder.pos + decoder.view.byteOffset,
+                    length
+                  )
+                );
+                decoder.skip(length);
+
+                obj.__event2 = "collect";
+                obj.__event2_index = 13;
+                break;
+              }
+              case 14: {
+                const length = decoder.uint32();
+                obj.transfer = Transfer.decodeDataView(
+                  new DataView(
+                    decoder.view.buffer,
+                    decoder.pos + decoder.view.byteOffset,
+                    length
+                  )
+                );
+                decoder.skip(length);
+
+                obj.__event2 = "transfer";
+                obj.__event2_index = 14;
+                break;
+              }
+              case 15: {
+                const length = decoder.uint32();
+                obj.initialize = Initialize.decodeDataView(
+                  new DataView(
+                    decoder.view.buffer,
+                    decoder.pos + decoder.view.byteOffset,
+                    length
+                  )
+                );
+                decoder.skip(length);
+
+                obj.__event2 = "initialize";
+                obj.__event2_index = 15;
+                break;
+              }
+              case 16: {
+                const length = decoder.uint32();
+                obj.swap = Swap.decodeDataView(
+                  new DataView(
+                    decoder.view.buffer,
+                    decoder.pos + decoder.view.byteOffset,
+                    length
+                  )
+                );
+                decoder.skip(length);
+
+                obj.__event2 = "swap";
+                obj.__event2_index = 16;
+                break;
+              }
+              case 17: {
+                const length = decoder.uint32();
+                obj.mint = Mint.decodeDataView(
+                  new DataView(
+                    decoder.view.buffer,
+                    decoder.pos + decoder.view.byteOffset,
+                    length
+                  )
+                );
+                decoder.skip(length);
+
+                obj.__event2 = "mint";
+                obj.__event2_index = 17;
+                break;
+              }
+              case 18: {
+                const length = decoder.uint32();
+                obj.burn = Burn.decodeDataView(
+                  new DataView(
+                    decoder.view.buffer,
+                    decoder.pos + decoder.view.byteOffset,
+                    length
+                  )
+                );
+                decoder.skip(length);
+
+                obj.__event2 = "burn";
+                obj.__event2_index = 18;
+                break;
+              }
+              case 19: {
+                const length = decoder.uint32();
+                obj.flash = Flash.decodeDataView(
+                  new DataView(
+                    decoder.view.buffer,
+                    decoder.pos + decoder.view.byteOffset,
+                    length
+                  )
+                );
+                decoder.skip(length);
+
+                obj.__event2 = "flash";
+                obj.__event2_index = 19;
                 break;
               }
 
@@ -915,6 +1089,98 @@ export namespace edgeandnode {
                 __proto.Sizer.varint64(this.block_timestamp.length) +
                 this.block_timestamp.length
               : 0;
+
+          if (this.poolcreated != null) {
+            const f: PoolCreated = this.poolcreated as PoolCreated;
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+            }
+          }
+
+          if (this.increaseliquidity != null) {
+            const f: IncreaseLiquidity = this
+              .increaseliquidity as IncreaseLiquidity;
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+            }
+          }
+
+          if (this.decreaseliquidity != null) {
+            const f: DecreaseLiquidity = this
+              .decreaseliquidity as DecreaseLiquidity;
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+            }
+          }
+
+          if (this.collect != null) {
+            const f: Collect = this.collect as Collect;
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+            }
+          }
+
+          if (this.transfer != null) {
+            const f: Transfer = this.transfer as Transfer;
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+            }
+          }
+
+          if (this.initialize != null) {
+            const f: Initialize = this.initialize as Initialize;
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+            }
+          }
+
+          if (this.swap != null) {
+            const f: Swap = this.swap as Swap;
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              size += 2 + __proto.Sizer.varint64(messageSize) + messageSize;
+            }
+          }
+
+          if (this.mint != null) {
+            const f: Mint = this.mint as Mint;
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              size += 2 + __proto.Sizer.varint64(messageSize) + messageSize;
+            }
+          }
+
+          if (this.burn != null) {
+            const f: Burn = this.burn as Burn;
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              size += 2 + __proto.Sizer.varint64(messageSize) + messageSize;
+            }
+          }
+
+          if (this.flash != null) {
+            const f: Flash = this.flash as Flash;
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              size += 2 + __proto.Sizer.varint64(messageSize) + messageSize;
+            }
+          }
 
           return size;
         }
@@ -982,6 +1248,126 @@ export namespace edgeandnode {
             encoder.uint32(0x4a);
             encoder.uint32(this.block_timestamp.length);
             encoder.string(this.block_timestamp);
+          }
+
+          if (this.poolcreated != null) {
+            const f = this.poolcreated as PoolCreated;
+
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              encoder.uint32(0x52);
+              encoder.uint32(messageSize);
+              f.encodeU8Array(encoder);
+            }
+          }
+
+          if (this.increaseliquidity != null) {
+            const f = this.increaseliquidity as IncreaseLiquidity;
+
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              encoder.uint32(0x5a);
+              encoder.uint32(messageSize);
+              f.encodeU8Array(encoder);
+            }
+          }
+
+          if (this.decreaseliquidity != null) {
+            const f = this.decreaseliquidity as DecreaseLiquidity;
+
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              encoder.uint32(0x62);
+              encoder.uint32(messageSize);
+              f.encodeU8Array(encoder);
+            }
+          }
+
+          if (this.collect != null) {
+            const f = this.collect as Collect;
+
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              encoder.uint32(0x6a);
+              encoder.uint32(messageSize);
+              f.encodeU8Array(encoder);
+            }
+          }
+
+          if (this.transfer != null) {
+            const f = this.transfer as Transfer;
+
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              encoder.uint32(0x72);
+              encoder.uint32(messageSize);
+              f.encodeU8Array(encoder);
+            }
+          }
+
+          if (this.initialize != null) {
+            const f = this.initialize as Initialize;
+
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              encoder.uint32(0x7a);
+              encoder.uint32(messageSize);
+              f.encodeU8Array(encoder);
+            }
+          }
+
+          if (this.swap != null) {
+            const f = this.swap as Swap;
+
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              encoder.uint32(0x82);
+              encoder.uint32(messageSize);
+              f.encodeU8Array(encoder);
+            }
+          }
+
+          if (this.mint != null) {
+            const f = this.mint as Mint;
+
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              encoder.uint32(0x8a);
+              encoder.uint32(messageSize);
+              f.encodeU8Array(encoder);
+            }
+          }
+
+          if (this.burn != null) {
+            const f = this.burn as Burn;
+
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              encoder.uint32(0x92);
+              encoder.uint32(messageSize);
+              f.encodeU8Array(encoder);
+            }
+          }
+
+          if (this.flash != null) {
+            const f = this.flash as Flash;
+
+            const messageSize = f.size();
+
+            if (messageSize > 0) {
+              encoder.uint32(0x9a);
+              encoder.uint32(messageSize);
+              f.encodeU8Array(encoder);
+            }
           }
 
           return buf;
@@ -2459,6 +2845,30 @@ export namespace edgeandnode {
        */
       public block_number: i32;
       public block_timestamp: string = "";
+      public poolcreated: PoolCreated | null;
+      public increaseliquidity: IncreaseLiquidity | null;
+      public decreaseliquidity: DecreaseLiquidity | null;
+      public collect: Collect | null;
+      public transfer: Transfer | null;
+      public initialize: Initialize | null;
+      public swap: Swap | null;
+      public mint: Mint | null;
+      public burn: Burn | null;
+      public flash: Flash | null;
+
+      public __event2: string = "";
+      public __event2_index: u8 = 0;
+
+      static readonly EVENT2_POOLCREATED_INDEX: u8 = 10;
+      static readonly EVENT2_INCREASELIQUIDITY_INDEX: u8 = 11;
+      static readonly EVENT2_DECREASELIQUIDITY_INDEX: u8 = 12;
+      static readonly EVENT2_COLLECT_INDEX: u8 = 13;
+      static readonly EVENT2_TRANSFER_INDEX: u8 = 14;
+      static readonly EVENT2_INITIALIZE_INDEX: u8 = 15;
+      static readonly EVENT2_SWAP_INDEX: u8 = 16;
+      static readonly EVENT2_MINT_INDEX: u8 = 17;
+      static readonly EVENT2_BURN_INDEX: u8 = 18;
+      static readonly EVENT2_FLASH_INDEX: u8 = 19;
 
       // Decodes Event from an ArrayBuffer
       static decode(buf: ArrayBuffer): Event {
@@ -2518,6 +2928,156 @@ export namespace edgeandnode {
             }
             case 9: {
               obj.block_timestamp = decoder.string();
+              break;
+            }
+            case 10: {
+              const length = decoder.uint32();
+              obj.poolcreated = PoolCreated.decodeDataView(
+                new DataView(
+                  decoder.view.buffer,
+                  decoder.pos + decoder.view.byteOffset,
+                  length
+                )
+              );
+              decoder.skip(length);
+
+              obj.__event2 = "poolcreated";
+              obj.__event2_index = 10;
+              break;
+            }
+            case 11: {
+              const length = decoder.uint32();
+              obj.increaseliquidity = IncreaseLiquidity.decodeDataView(
+                new DataView(
+                  decoder.view.buffer,
+                  decoder.pos + decoder.view.byteOffset,
+                  length
+                )
+              );
+              decoder.skip(length);
+
+              obj.__event2 = "increaseliquidity";
+              obj.__event2_index = 11;
+              break;
+            }
+            case 12: {
+              const length = decoder.uint32();
+              obj.decreaseliquidity = DecreaseLiquidity.decodeDataView(
+                new DataView(
+                  decoder.view.buffer,
+                  decoder.pos + decoder.view.byteOffset,
+                  length
+                )
+              );
+              decoder.skip(length);
+
+              obj.__event2 = "decreaseliquidity";
+              obj.__event2_index = 12;
+              break;
+            }
+            case 13: {
+              const length = decoder.uint32();
+              obj.collect = Collect.decodeDataView(
+                new DataView(
+                  decoder.view.buffer,
+                  decoder.pos + decoder.view.byteOffset,
+                  length
+                )
+              );
+              decoder.skip(length);
+
+              obj.__event2 = "collect";
+              obj.__event2_index = 13;
+              break;
+            }
+            case 14: {
+              const length = decoder.uint32();
+              obj.transfer = Transfer.decodeDataView(
+                new DataView(
+                  decoder.view.buffer,
+                  decoder.pos + decoder.view.byteOffset,
+                  length
+                )
+              );
+              decoder.skip(length);
+
+              obj.__event2 = "transfer";
+              obj.__event2_index = 14;
+              break;
+            }
+            case 15: {
+              const length = decoder.uint32();
+              obj.initialize = Initialize.decodeDataView(
+                new DataView(
+                  decoder.view.buffer,
+                  decoder.pos + decoder.view.byteOffset,
+                  length
+                )
+              );
+              decoder.skip(length);
+
+              obj.__event2 = "initialize";
+              obj.__event2_index = 15;
+              break;
+            }
+            case 16: {
+              const length = decoder.uint32();
+              obj.swap = Swap.decodeDataView(
+                new DataView(
+                  decoder.view.buffer,
+                  decoder.pos + decoder.view.byteOffset,
+                  length
+                )
+              );
+              decoder.skip(length);
+
+              obj.__event2 = "swap";
+              obj.__event2_index = 16;
+              break;
+            }
+            case 17: {
+              const length = decoder.uint32();
+              obj.mint = Mint.decodeDataView(
+                new DataView(
+                  decoder.view.buffer,
+                  decoder.pos + decoder.view.byteOffset,
+                  length
+                )
+              );
+              decoder.skip(length);
+
+              obj.__event2 = "mint";
+              obj.__event2_index = 17;
+              break;
+            }
+            case 18: {
+              const length = decoder.uint32();
+              obj.burn = Burn.decodeDataView(
+                new DataView(
+                  decoder.view.buffer,
+                  decoder.pos + decoder.view.byteOffset,
+                  length
+                )
+              );
+              decoder.skip(length);
+
+              obj.__event2 = "burn";
+              obj.__event2_index = 18;
+              break;
+            }
+            case 19: {
+              const length = decoder.uint32();
+              obj.flash = Flash.decodeDataView(
+                new DataView(
+                  decoder.view.buffer,
+                  decoder.pos + decoder.view.byteOffset,
+                  length
+                )
+              );
+              decoder.skip(length);
+
+              obj.__event2 = "flash";
+              obj.__event2_index = 19;
               break;
             }
 
@@ -2581,6 +3141,98 @@ export namespace edgeandnode {
               __proto.Sizer.varint64(this.block_timestamp.length) +
               this.block_timestamp.length
             : 0;
+
+        if (this.poolcreated != null) {
+          const f: PoolCreated = this.poolcreated as PoolCreated;
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+          }
+        }
+
+        if (this.increaseliquidity != null) {
+          const f: IncreaseLiquidity = this
+            .increaseliquidity as IncreaseLiquidity;
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+          }
+        }
+
+        if (this.decreaseliquidity != null) {
+          const f: DecreaseLiquidity = this
+            .decreaseliquidity as DecreaseLiquidity;
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+          }
+        }
+
+        if (this.collect != null) {
+          const f: Collect = this.collect as Collect;
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+          }
+        }
+
+        if (this.transfer != null) {
+          const f: Transfer = this.transfer as Transfer;
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+          }
+        }
+
+        if (this.initialize != null) {
+          const f: Initialize = this.initialize as Initialize;
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            size += 1 + __proto.Sizer.varint64(messageSize) + messageSize;
+          }
+        }
+
+        if (this.swap != null) {
+          const f: Swap = this.swap as Swap;
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            size += 2 + __proto.Sizer.varint64(messageSize) + messageSize;
+          }
+        }
+
+        if (this.mint != null) {
+          const f: Mint = this.mint as Mint;
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            size += 2 + __proto.Sizer.varint64(messageSize) + messageSize;
+          }
+        }
+
+        if (this.burn != null) {
+          const f: Burn = this.burn as Burn;
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            size += 2 + __proto.Sizer.varint64(messageSize) + messageSize;
+          }
+        }
+
+        if (this.flash != null) {
+          const f: Flash = this.flash as Flash;
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            size += 2 + __proto.Sizer.varint64(messageSize) + messageSize;
+          }
+        }
 
         return size;
       }
@@ -2648,6 +3300,126 @@ export namespace edgeandnode {
           encoder.uint32(0x4a);
           encoder.uint32(this.block_timestamp.length);
           encoder.string(this.block_timestamp);
+        }
+
+        if (this.poolcreated != null) {
+          const f = this.poolcreated as PoolCreated;
+
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            encoder.uint32(0x52);
+            encoder.uint32(messageSize);
+            f.encodeU8Array(encoder);
+          }
+        }
+
+        if (this.increaseliquidity != null) {
+          const f = this.increaseliquidity as IncreaseLiquidity;
+
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            encoder.uint32(0x5a);
+            encoder.uint32(messageSize);
+            f.encodeU8Array(encoder);
+          }
+        }
+
+        if (this.decreaseliquidity != null) {
+          const f = this.decreaseliquidity as DecreaseLiquidity;
+
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            encoder.uint32(0x62);
+            encoder.uint32(messageSize);
+            f.encodeU8Array(encoder);
+          }
+        }
+
+        if (this.collect != null) {
+          const f = this.collect as Collect;
+
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            encoder.uint32(0x6a);
+            encoder.uint32(messageSize);
+            f.encodeU8Array(encoder);
+          }
+        }
+
+        if (this.transfer != null) {
+          const f = this.transfer as Transfer;
+
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            encoder.uint32(0x72);
+            encoder.uint32(messageSize);
+            f.encodeU8Array(encoder);
+          }
+        }
+
+        if (this.initialize != null) {
+          const f = this.initialize as Initialize;
+
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            encoder.uint32(0x7a);
+            encoder.uint32(messageSize);
+            f.encodeU8Array(encoder);
+          }
+        }
+
+        if (this.swap != null) {
+          const f = this.swap as Swap;
+
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            encoder.uint32(0x82);
+            encoder.uint32(messageSize);
+            f.encodeU8Array(encoder);
+          }
+        }
+
+        if (this.mint != null) {
+          const f = this.mint as Mint;
+
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            encoder.uint32(0x8a);
+            encoder.uint32(messageSize);
+            f.encodeU8Array(encoder);
+          }
+        }
+
+        if (this.burn != null) {
+          const f = this.burn as Burn;
+
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            encoder.uint32(0x92);
+            encoder.uint32(messageSize);
+            f.encodeU8Array(encoder);
+          }
+        }
+
+        if (this.flash != null) {
+          const f = this.flash as Flash;
+
+          const messageSize = f.size();
+
+          if (messageSize > 0) {
+            encoder.uint32(0x9a);
+            encoder.uint32(messageSize);
+            f.encodeU8Array(encoder);
+          }
         }
 
         return buf;

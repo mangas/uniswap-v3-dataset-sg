@@ -1,6 +1,6 @@
 import { WHITELIST_TOKENS } from './../utils/pricing'
 /* eslint-disable prefer-const */
-import { FACTORY_ADDRESS, ZERO_BI, ONE_BI, ZERO_BD, ADDRESS_ZERO } from './../utils/constants'
+import { FACTORY_ADDRESS, ZERO_BI, ONE_BI, ZERO_BD, ADDRESS_ZERO, FACTORY_ADDRESS_STR } from './../utils/constants'
 import { Factory } from '../types/schema'
 import { Pool, Token, Bundle } from '../types/schema'
 import { fetchTokenSymbol, fetchTokenName, fetchTokenTotalSupply, fetchTokenDecimals } from '../utils/token'
@@ -11,22 +11,24 @@ import { TxDetails } from './fast'
 export function handlePoolCreated(txDetails: TxDetails, event: assembly.edgeandnode.uniswap.v1.PoolCreated): void {
 
   // Only care about Pools created by the specific factory
-  if (txDetails.address.toHexString() != FACTORY_ADDRESS) {
+  if (txDetails.address != FACTORY_ADDRESS) {
+    log.debug("PoolCreated by {}, looking {}", [txDetails.address.toHexString(), FACTORY_ADDRESS_STR])
     return;
   }
 
-  const poolAddress: Address = Address.fromString(event.pool);
-  const token0Address: Address = Address.fromString(event.token0);
-  const token1Address: Address = Address.fromString(event.token1);
+  log.debug("PoolCreated addr:{} t0:{} t1:{}", [event.pool, event.token0, event.token1]);
+  const poolAddress: Address = Address.fromString("0x" + event.pool);
+  const token0Address: Address = Address.fromString("0x" + event.token0);
+  const token1Address: Address = Address.fromString("0x" + event.token1);
   // temp fix
-  if (poolAddress == Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')) {
+  if (poolAddress == Address.fromString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248')) {
     return
   }
 
   // load factory
-  let factory = Factory.load(FACTORY_ADDRESS)
+  let factory = Factory.load(FACTORY_ADDRESS_STR)
   if (factory === null) {
-    factory = new Factory(FACTORY_ADDRESS)
+    factory = new Factory(FACTORY_ADDRESS_STR)
     factory.poolCount = ZERO_BI
     factory.totalVolumeETH = ZERO_BD
     factory.totalVolumeUSD = ZERO_BD

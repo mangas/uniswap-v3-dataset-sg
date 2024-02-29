@@ -142,7 +142,7 @@ export function handleDecreaseLiquidity(txDetails: TxDetails, event: assembly.ed
   }
 
   // temp fix
-  if (Address.fromString(position.pool).equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))) {
+  if (Address.fromString(position.pool).equals(Address.fromString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))) {
     return
   }
 
@@ -174,7 +174,7 @@ export function handleCollect(txDetails: TxDetails, event: assembly.edgeandnode.
   if (position == null) {
     return
   }
-  if (Address.fromString(position.pool).equals(Address.fromHexString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))) {
+  if (Address.fromString(position.pool).equals(Address.fromString('0x8fe8d9bb8eeba3ed688069c3d6b556c9ca258248'))) {
     return
   }
 

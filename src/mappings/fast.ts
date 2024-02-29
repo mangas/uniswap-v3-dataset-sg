@@ -2,7 +2,8 @@ import * as assembly from "../pb/assembly"
 import { handlePoolCreated } from './factory';
 import { handleIncreaseLiquidity, handleDecreaseLiquidity, handleCollect, handleTransfer } from './position-manager';
 import { handleInitialize, handleSwap, handleMint, handleBurn, handleFlash } from './core';
-import { Address, BigInt, Bytes, ByteArray } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ByteArray, log } from "@graphprotocol/graph-ts";
+import { ADDRESS_ZERO } from "../utils/constants";
 
 
 export class TxDetails {
@@ -37,8 +38,14 @@ export class TxDetails {
 };
 
 export function txDetailsFromHeader(header: assembly.edgeandnode.uniswap.v1.Event): TxDetails {
+  log.error("#### address: {}", [header.address]);
+
+  let addr = "0x" + header.address;
+  if (header.address.length == 0)
+    addr = ADDRESS_ZERO
+
   return new TxDetails(
-    Address.fromString(header.address),
+    Address.fromString(addr),
     BigInt.fromI32(header.block_number),
     BigInt.fromString(header.block_timestamp),
     Bytes.fromByteArray(changetype<ByteArray>(header.tx_hash)),
@@ -55,52 +62,59 @@ export function handleBlock(blockBytes: Uint8Array): void {
   decoded.events.forEach((event: assembly.edgeandnode.uniswap.v1.Event) => {
     const txDetails = txDetailsFromHeader(event);
 
+    const x = new Uint8Array(event.event.value.length);
+    for (let i = 0; i < event.event.value.length; i++) {
+      x[i] = event.event.value[i];
+    }
+
+
     switch (event.type) {
       case 0: {
-        const e = assembly.edgeandnode.uniswap.v1.PoolCreated.decode(changetype<Uint8Array>(event.event.value).buffer);
-        handlePoolCreated(txDetails, e);
+
+        // const e = assembly.edgeandnode.uniswap.v1.PoolCreated.decode(x.buffer);
+        handlePoolCreated(txDetails, event.poolcreated!);
         break;
       }
       // PositionManager
       case 1: {
-        const e = assembly.edgeandnode.uniswap.v1.IncreaseLiquidity.decode(changetype<Uint8Array>(event.event.value).buffer);
-        handleIncreaseLiquidity(txDetails, e);
+        // const e = assembly.edgeandnode.uniswap.v1.IncreaseLiquidity.decode(x.buffer);
+        handleIncreaseLiquidity(txDetails, event.increaseliquidity!);
         break;
       }
       case 2: {
-        const e = assembly.edgeandnode.uniswap.v1.DecreaseLiquidity.decode(changetype<Uint8Array>(event.event.value).buffer);
-        handleDecreaseLiquidity(txDetails, e);
+        // const e = assembly.edgeandnode.uniswap.v1.DecreaseLiquidity.decode(x.buffer);
+        handleDecreaseLiquidity(txDetails, event.decreaseliquidity!);
         break;
       }
       case 3: {
-        const e = assembly.edgeandnode.uniswap.v1.Collect.decode(changetype<Uint8Array>(event.event.value).buffer);
-        handleCollect(txDetails, e);
+        // const e = assembly.edgeandnode.uniswap.v1.Collect.decode(x.buffer);
+        handleCollect(txDetails, event.collect!);
         break;
       }
       case 4: {
-        const e = assembly.edgeandnode.uniswap.v1.Transfer.decode(changetype<Uint8Array>(event.event.value).buffer);
-        handleTransfer(txDetails, e);
+        // const e = assembly.edgeandnode.uniswap.v1.Transfer.decode(x.buffer);
+        handleTransfer(txDetails, event.transfer!);
         break;
       }
       // Pool
       case 5: {
-        const e = assembly.edgeandnode.uniswap.v1.Initialize.decode(changetype<Uint8Array>(event.event.value).buffer);
-        handleInitialize(txDetails, e);
+        // const e = assembly.edgeandnode.uniswap.v1.Initialize.decode(x.buffer);
+        handleInitialize(txDetails, event.initialize!);
         break;
       }
       case 6: {
-        const e = assembly.edgeandnode.uniswap.v1.Swap.decode(changetype<Uint8Array>(event.event.value).buffer);
-        handleSwap(txDetails, e);
+        // const e = assembly.edgeandnode.uniswap.v1.Swap.decode(x.buffer);
+        handleSwap(txDetails, event.swap!);
         break;
       }
       case 7: {
-        const e = assembly.edgeandnode.uniswap.v1.Mint.decode(changetype<Uint8Array>(event.event.value).buffer);
-        handleMint(txDetails, e);
+        // const e = assembly.edgeandnode.uniswap.v1.Mint.decode(x.buffer);
+        handleMint(txDetails, event.mint!);
         break;
       }
       case 8: {
-        const e = assembly.edgeandnode.uniswap.v1.Burn.decode(changetype<Uint8Array>(event.event.value).buffer);
-        handleBurn(txDetails, e);
+        // const e = assembly.edgeandnode.uniswap.v1.Burn.decode(x.buffer);
+        handleBurn(txDetails, event.burn!);
         break;
       }
       // FLASH

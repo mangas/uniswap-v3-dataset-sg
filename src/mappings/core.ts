@@ -3,7 +3,7 @@ import { Bundle, Burn, Factory, Mint, Pool, Swap, Tick, Token } from '../types/s
 import { Pool as PoolABI } from '../types/Factory/Pool'
 import { BigDecimal, BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { convertTokenToDecimal, loadTransaction, safeDiv } from '../utils'
-import { FACTORY_ADDRESS, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
+import { FACTORY_ADDRESS, ONE_BI, ZERO_BD, ZERO_BI, FACTORY_ADDRESS_STR } from '../utils/constants'
 import { findEthPerToken, getEthPriceInUSD, getTrackedAmountUSD, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
 import {
   updatePoolDayData,
@@ -56,7 +56,7 @@ export function handleMint(txDetails: TxDetails, event: assembly.edgeandnode.uni
 
   let bundle = Bundle.load('1')!
 
-  let factory = Factory.load(FACTORY_ADDRESS)!
+  let factory = Factory.load(FACTORY_ADDRESS_STR)!
 
   let token0 = Token.load(pool.token0)!
   let token1 = Token.load(pool.token1)!
@@ -178,7 +178,7 @@ export function handleBurn(txDetails: TxDetails, event: assembly.edgeandnode.uni
   let poolAddress = txDetails.address.toHexString()
   let pool = Pool.load(poolAddress)
   if (pool == null) return;
-  let factory = Factory.load(FACTORY_ADDRESS)!
+  let factory = Factory.load(FACTORY_ADDRESS_STR)!
   let bundle = Bundle.load('1')!
 
   let token0 = Token.load(pool.token0)!
@@ -284,7 +284,7 @@ export function handleSwap(txDetails: TxDetails, event: assembly.edgeandnode.uni
     return
   }
   let bundle = Bundle.load('1')!
-  let factory = Factory.load(FACTORY_ADDRESS)!
+  let factory = Factory.load(FACTORY_ADDRESS_STR)!
 
   let token0 = Token.load(pool.token0)!
   let token1 = Token.load(pool.token1)!

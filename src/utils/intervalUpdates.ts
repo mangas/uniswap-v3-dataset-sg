@@ -1,4 +1,4 @@
-import { ZERO_BD, ZERO_BI, ONE_BI } from './constants'
+import { ZERO_BD, ZERO_BI, ONE_BI, FACTORY_ADDRESS_STR } from './constants'
 /* eslint-disable prefer-const */
 import {
   UniswapDayData,
@@ -20,7 +20,7 @@ import { TxDetails } from '../mappings/fast'
  * @param event
  */
 export function updateUniswapDayData(event: TxDetails): UniswapDayData {
-  let uniswap = Factory.load(FACTORY_ADDRESS)!
+  let uniswap = Factory.load(FACTORY_ADDRESS_STR)!
   let timestamp = event.blockTimestamp.toI32()
   let dayID = timestamp / 86400 // rounded
   let dayStartTimestamp = dayID * 86400
