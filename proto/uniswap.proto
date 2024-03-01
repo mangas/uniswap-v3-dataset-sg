@@ -35,14 +35,26 @@ message Event {
   EventType type = 2;
   google.protobuf.Any event = 3;
   string address= 4;
-  bytes tx_hash = 5;
+  string tx_hash = 5;
   string tx_gas_used = 6; 
-  bytes tx_gas_price = 7;
+  string tx_gas_price = 7;
   // This duplicates data (as opposed to adding this data to the head) but AssemblyScript does
   // not support closures and so using the data is not super easy if it's in the header so I'll 
   // leave it here.
   int32 block_number = 8;
   string block_timestamp = 9;
+  oneof event2 {
+    PoolCreated poolcreated = 10;
+    IncreaseLiquidity increaseliquidity = 11;
+    DecreaseLiquidity decreaseliquidity = 12;
+    Collect collect = 13;
+    Transfer transfer = 14;
+    Initialize initialize = 15;
+    Swap swap = 16;
+    Mint mint = 17;
+    Burn burn = 18;
+    Flash flash = 19;
+  }
 }
 
 // Factory

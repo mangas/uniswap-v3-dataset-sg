@@ -781,9 +781,9 @@ export namespace edgeandnode {
         public type: u32;
         public event: google.protobuf.Any = new google.protobuf.Any();
         public address: string = "";
-        public tx_hash: Array<u8> = new Array<u8>();
+        public tx_hash: string = "";
         public tx_gas_used: string = "";
-        public tx_gas_price: Array<u8> = new Array<u8>();
+        public tx_gas_price: string = "";
         /**
          * This duplicates data (as opposed to adding this data to the head) but AssemblyScript does
          *  not support closures and so using the data is not super easy if it's in the header so I'll
@@ -857,7 +857,7 @@ export namespace edgeandnode {
                 break;
               }
               case 5: {
-                obj.tx_hash = decoder.bytes();
+                obj.tx_hash = decoder.string();
                 break;
               }
               case 6: {
@@ -865,7 +865,7 @@ export namespace edgeandnode {
                 break;
               }
               case 7: {
-                obj.tx_gas_price = decoder.bytes();
+                obj.tx_gas_price = decoder.string();
                 break;
               }
               case 8: {
@@ -1228,7 +1228,7 @@ export namespace edgeandnode {
           if (this.tx_hash.length > 0) {
             encoder.uint32(0x2a);
             encoder.uint32(this.tx_hash.length);
-            encoder.bytes(this.tx_hash);
+            encoder.string(this.tx_hash);
           }
           if (this.tx_gas_used.length > 0) {
             encoder.uint32(0x32);
@@ -1238,7 +1238,7 @@ export namespace edgeandnode {
           if (this.tx_gas_price.length > 0) {
             encoder.uint32(0x3a);
             encoder.uint32(this.tx_gas_price.length);
-            encoder.bytes(this.tx_gas_price);
+            encoder.string(this.tx_gas_price);
           }
           if (this.block_number != 0) {
             encoder.uint32(0x40);
@@ -2835,9 +2835,9 @@ export namespace edgeandnode {
       public type: u32;
       public event: google.protobuf.Any = new google.protobuf.Any();
       public address: string = "";
-      public tx_hash: Array<u8> = new Array<u8>();
+      public tx_hash: string = "";
       public tx_gas_used: string = "";
-      public tx_gas_price: Array<u8> = new Array<u8>();
+      public tx_gas_price: string = "";
       /**
        * This duplicates data (as opposed to adding this data to the head) but AssemblyScript does
        *  not support closures and so using the data is not super easy if it's in the header so I'll
@@ -2911,7 +2911,7 @@ export namespace edgeandnode {
               break;
             }
             case 5: {
-              obj.tx_hash = decoder.bytes();
+              obj.tx_hash = decoder.string();
               break;
             }
             case 6: {
@@ -2919,7 +2919,7 @@ export namespace edgeandnode {
               break;
             }
             case 7: {
-              obj.tx_gas_price = decoder.bytes();
+              obj.tx_gas_price = decoder.string();
               break;
             }
             case 8: {
@@ -3280,7 +3280,7 @@ export namespace edgeandnode {
         if (this.tx_hash.length > 0) {
           encoder.uint32(0x2a);
           encoder.uint32(this.tx_hash.length);
-          encoder.bytes(this.tx_hash);
+          encoder.string(this.tx_hash);
         }
         if (this.tx_gas_used.length > 0) {
           encoder.uint32(0x32);
@@ -3290,7 +3290,7 @@ export namespace edgeandnode {
         if (this.tx_gas_price.length > 0) {
           encoder.uint32(0x3a);
           encoder.uint32(this.tx_gas_price.length);
-          encoder.bytes(this.tx_gas_price);
+          encoder.string(this.tx_gas_price);
         }
         if (this.block_number != 0) {
           encoder.uint32(0x40);
