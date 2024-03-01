@@ -44,13 +44,14 @@ export function txDetailsFromHeader(header: assembly.edgeandnode.uniswap.v1.Even
   if (header.address.length == 0)
     addr = ADDRESS_ZERO
 
+
   return new TxDetails(
     Address.fromString(addr),
     BigInt.fromI32(header.block_number),
     BigInt.fromString(header.block_timestamp),
-    Bytes.fromByteArray(changetype<ByteArray>(header.tx_hash)),
+    Bytes.fromHexString(header.tx_hash),
     BigInt.fromString(header.tx_gas_used),
-    BigInt.fromByteArray(changetype<ByteArray>(header.tx_gas_price.toString())),
+    BigInt.fromString(header.tx_gas_price),
   );
 }
 
